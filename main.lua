@@ -1,39 +1,39 @@
 -- Called only once when the game is started.
 function love.load()
-	logging = require("glc_logging")
-	logging.log("foo");
-	dirtyKey = false
-	pressedKey = {value = nil, dirtyKey = false}
+  logging = require("glc_logging")
+  logging.log("foo");
+  dirtyKey = false
+  pressedKey = {value = nil, dirtyKey = false}
 
-	tileset = require("Dungeon_sans_npcs")
-	loader = require("glc_tileset")
-	loader.init(tileset)
+  tileset = require("Dungeon_sans_npcs")
+  loader = require("glc_tileset")
+  loader.init(tileset)
 
-	canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth, tileset.height * tileset.tileheight)
-	canvas:setFilter("nearest", "nearest") -- linear interpolation
+  canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth, tileset.height * tileset.tileheight)
+  canvas:setFilter("nearest", "nearest") -- linear interpolation
 
-	scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
+  scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
 end
 
 
 -- Runs continuously. Good idea to put all the computations here. 'dt' is the time difference since the last update.
 function love.update(dt)
-	if pressedKey.value ~= nil and not pressedKey.dirtyKey then
-		logging.log("Button released:"..pressedKey.value)
-		pressedKey.dirtyKey = true
-	end
+  if pressedKey.value ~= nil and not pressedKey.dirtyKey then
+    logging.log("Button released:"..pressedKey.value)
+    pressedKey.dirtyKey = true
+  end
 end
 
 
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
-	love.graphics.setCanvas(canvas) -- draw to this canvas
+  love.graphics.setCanvas(canvas) -- draw to this canvas
 
-	loader.draw_tiles()
+  loader.draw_tiles()
 
-	love.graphics.setCanvas() -- sets the target canvas back to screen
-	love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY) -- scale the canvas 2x
-	logging.display_log()
+  love.graphics.setCanvas() -- sets the target canvas back to screen
+  love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY) -- scale the canvas 2x
+  logging.display_log()
 end
 
 
@@ -54,13 +54,13 @@ end
 
 -- Keyboard key released.
 function love.keyreleased(key)
-	pressedKey.value = key
-	pressedKey.dirtyKey = false
-	if key == "escape" then
-		love.event.quit()
-	elseif key == "ralt" then
-		logging.do_show = not logging.do_show
-	end
+  pressedKey.value = key
+  pressedKey.dirtyKey = false
+  if key == "escape" then
+    love.event.quit()
+  elseif key == "ralt" then
+    logging.do_show = not logging.do_show
+  end
 end
 
 
@@ -72,4 +72,3 @@ end
 -- Self-explanatory.
 function love.quit()
 end
-
