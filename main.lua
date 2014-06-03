@@ -1,12 +1,12 @@
 -- Called only once when the game is started.
 function love.load()
-  logging = require("glc_logging")
+  logging = require("logging")
   logging.log("foo");
   dirtyKey = false
   pressedKey = {value = nil, dirtyKey = false}
 
-  tileset = require("Dungeon_sans_npcs")
-  loader = require("glc_tileset")
+  tileset = require("zones/Dungeon_sans_npcs")
+  loader = require("tileset")
   loader.init(tileset)
 
   canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth, tileset.height * tileset.tileheight)
