@@ -25,6 +25,10 @@ function love.load()
   nsqq = love.thread.newChannel()
   nsqt:start(nsqq)
 
+  -- monitor filesystem changes
+  fs = love.thread.newThread("library/monitor.lua")
+  fs:start()
+
   scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
 end
 
