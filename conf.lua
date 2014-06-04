@@ -1,6 +1,7 @@
 win = {}
 
--- Overrides the default LOVE configuration file. 't' contains a table with the default values.
+-- Overrides the default LOVE configuration file. 't' contains a table
+-- with the default values.
 function love.conf(t)
   t.console = true
 

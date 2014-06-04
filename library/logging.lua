@@ -1,11 +1,4 @@
-local glc_logging = {}
-
-glc_logging.do_show = false
-glc_logging.messages = {}
-glc_logging.max_rows = 8 -- max rows to display
-glc_logging.fade_after = 15 -- fades after 15 seconds. Set it to 0 to force it to be always on.
 local inc = 12 -- TODO: get current text height instead
-
 
 local function drawBackground()
   local r, g, b, a = love.graphics.getColor()
@@ -18,7 +11,6 @@ local function log(msg)
   table.insert(glc_logging.messages, 1, msg)
   print("logged:", msg)
 end
-glc_logging.log = log
 
 local function display_log()
   if not glc_logging.do_show then
@@ -34,6 +26,12 @@ local function display_log()
     end
   end
 end
-glc_logging.display_log = display_log
 
+glc_logging = {}
+glc_logging.do_show = false
+glc_logging.messages = {}
+glc_logging.max_rows = 8 -- max rows to display
+glc_logging.fade_after = 15 -- fades after 15 seconds. Set it to 0 to force it to be always on.
+glc_logging.log = log
+glc_logging.display_log = display_log
 return glc_logging

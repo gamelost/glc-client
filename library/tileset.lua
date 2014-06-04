@@ -1,5 +1,3 @@
-glc_tileset = {}
-
 local function load_tilesets(tilesets)
   tilesets.all_tiles = {}
   for k, v in ipairs(tilesets.tilesets) do
@@ -25,13 +23,10 @@ local function load_tilesets(tilesets)
   print("Done loading tiles")
 end
 
-
 local function init(data)
   tileset_data = data
   load_tilesets(data)
 end
-glc_tileset.init = init
-
 
 local function draw_tiles()
 
@@ -63,7 +58,8 @@ local function draw_tiles()
     end
   end
 end
+
+glc_tileset = {}
+glc_tileset.init = init
 glc_tileset.draw_tiles = draw_tiles
-
-
 return glc_tileset

@@ -1,17 +1,16 @@
+require "settings"
+
 -- Called only once when the game is started.
 function love.load()
-  logging = require("logging")
+  logging = require("library/logging")
   logging.log("** starting game lost crash client")
   logging.do_show = true
 
   pressedKey = {value = nil, dirtyKey = false}
 
-  tileset = require("zones/Dungeon_sans_npcs")
-  loader = require("tileset")
-  loader.init(tileset)
-
-  canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth,
-                                   tileset.height * tileset.tileheight)
+  -- set up the canvas
+  canvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
+                                   settings.tiles_per_column * settings.tile_height)
   canvas:setFilter("nearest", "nearest") -- linear interpolation
   scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
 
@@ -24,12 +23,21 @@ function love.load()
 
   -- thread/queue for nsq processing
   nsqt = love.thread.newThread("test/test-nsq.lua")
-  nsqq = love.thread.newChannel()
+  nsqq = love.thread.newChannel("nsq")
   nsqt:start(nsqq)
 
   -- monitor filesystem changes
-  fs = love.thread.newThread("library/monitor.lua")
-  fs:start()
+  fs = love.thread.newThread("scripts/monitor.lua")
+  wadq = love.thread.newChannel("wads")
+  fs:start(wadq)
+
+  -- initialize zones
+  zones = {}
+  wads = wadq:demand()
+  for wad, _ in pairs(wads) do
+    local zone = require("library/zone")
+    table.insert(zones, zone:new(wad))
+  end
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -50,15 +58,21 @@ end
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
 
-  -- draw splash screen
   if splash then
+    -- draw splash screen
     x = width/2 - glc_w/2
     y = height/2 - glc_h/2
     love.graphics.draw(glc, x, y)
     love.graphics.setBackgroundColor(0x62, 0x36, 0xb3)
   else
+    -- draw zones
     love.graphics.setCanvas(canvas) -- draw to this canvas
-    loader.draw_tiles()
+    if #zones == 0 then
+      logging.log("No zones found.")
+    end
+    for _, zone in pairs(zones) do
+      zone.update()
+    end
     love.graphics.setCanvas() -- sets the target canvas back to screen
     love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY) -- scale the canvas 2x
   end
