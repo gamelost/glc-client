@@ -1,21 +1,23 @@
 -- Called only once when the game is started.
 function love.load()
   logging = require("logging")
-  logging.log("starting up game lost crash client")
+  logging.log("** starting game lost crash client")
   logging.do_show = true
 
-  dirtyKey = false
   pressedKey = {value = nil, dirtyKey = false}
 
   tileset = require("zones/Dungeon_sans_npcs")
   loader = require("tileset")
   loader.init(tileset)
 
-  canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth, tileset.height * tileset.tileheight)
+  canvas = love.graphics.newCanvas(tileset.width * tileset.tilewidth,
+                                   tileset.height * tileset.tileheight)
   canvas:setFilter("nearest", "nearest") -- linear interpolation
+  scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
 
   -- load the splash screen
   splash = true
+  splash_time = love.timer.getTime()
   glc = love.graphics.newImage("assets/gamelostcrash.png")
   glc_w, glc_h = glc:getDimensions()
   width, height = love.graphics.getDimensions()
@@ -28,14 +30,19 @@ function love.load()
   -- monitor filesystem changes
   fs = love.thread.newThread("library/monitor.lua")
   fs:start()
-
-  scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
 end
 
--- Runs continuously. Good idea to put all the computations here. 'dt' is the time difference since the last update.
+-- Runs continuously. Good idea to put all the computations here. 'dt'
+-- is the time difference since the last update.
 function love.update(dt)
+  if splash then
+    elapsed = love.timer.getTime() - splash_time
+    if elapsed > 1.0 then
+      splash = false
+    end
+  end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
-    logging.log("Button released:"..pressedKey.value)
+    --logging.log("Button released:"..pressedKey.value)
     pressedKey.dirtyKey = true
   end
 end

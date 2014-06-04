@@ -33,8 +33,27 @@ end
 
 monitor_fs = {}
 
+function init()
+  -- attempt to sshfs mount the vm. if this fails, just fall back to
+  -- the regular assets directory.
+  love.filesystem.createDirectory(settings.asset_vm_dir)
+  -- key path must be absolute
+  local cwd = love.filesystem.getWorkingDirectory()
+  local keypath = cwd .. "/" .. settings.asset_vm_keypath
+  local result = settings.mount_asset_vm_command(keypath,
+                                                 settings.asset_vm_userhost,
+                                                 settings.asset_vm_remotedir)
+  if result == 0 then
+    current.assets_dir = settings.asset_vm_dir
+    print("using asset vm")
+  else
+    current.assets_dir = settings.assets_dir
+    print("using regular assets")
+  end
+end
+
 function refresh()
-  traverse(settings.assets_dir, checkForModifications)
+  traverse(current.assets_dir, checkForModifications)
 end
 
 function loadWad(filename)
@@ -46,5 +65,6 @@ function loadAsset(filename)
   print("loaded asset " .. filename)
 end
 
+monitor_fs.init = init
 monitor_fs.refresh = refresh
 return monitor_fs

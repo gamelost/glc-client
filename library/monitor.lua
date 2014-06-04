@@ -1,6 +1,7 @@
 require "love.timer"
 
 fs = require("library/monitor-fs")
+fs.init()
 
 -- brute force, yo
 while true do
