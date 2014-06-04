@@ -21,6 +21,19 @@ function love.load()
   glc_w, glc_h = glc:getDimensions()
   width, height = love.graphics.getDimensions()
 
+  -- load player asset
+  p0 = love.graphics.newImage("assets/Player0.png")
+  p1 = love.graphics.newImage("assets/Player1.png")
+  px = 0
+  py = 0
+  -- get the middle of the screen
+  poffsetx = - canvas:getWidth() / 2
+  poffsety = - canvas:getHeight() / 2
+  -- adjust for the middle of the sprite itself
+  poffsetx = poffsetx + 8
+  poffsety = poffsety + 8
+  player_quad = love.graphics.newQuad(0, 0, 16, 16, p0:getWidth(), p0:getHeight())
+
   -- thread/queue for nsq processing
   nsqt = love.thread.newThread("test/test-nsq.lua")
   nsqq = love.thread.newChannel("nsq")
@@ -55,6 +68,21 @@ function love.update(dt)
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
     --logging.log("Button released:"..pressedKey.value)
+
+    local speed = 300 * dt
+    if pressedKey.value == "up" then
+      py = py - speed
+    end
+    if pressedKey.value == "down" then
+      py = py + speed
+    end
+    if pressedKey.value == "left" then
+      px = px - speed
+    end
+    if pressedKey.value == "right" then
+      px = px + speed
+    end
+
     pressedKey.dirtyKey = true
   end
 end
@@ -69,16 +97,19 @@ function love.draw()
     love.graphics.draw(glc, x, y)
     love.graphics.setBackgroundColor(0x62, 0x36, 0xb3)
   else
-    -- draw zones
     love.graphics.setCanvas(canvas) -- draw to this canvas
+    -- draw zones
     if #zones == 0 then
       logging.log("No zones found.")
     end
     for _, zone in pairs(zones) do
       zone.update()
     end
-    love.graphics.setCanvas() -- sets the target canvas back to screen
-    love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY) -- scale the canvas 2x
+    -- draw player
+    love.graphics.draw(p0, player_quad, 0, 0, 0, 1, 1, poffsetx, poffsety)
+    -- set target canvas back to screen and scale
+    love.graphics.setCanvas()
+    love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY)
   end
 
   logging.display_log()
