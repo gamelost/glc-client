@@ -11,7 +11,7 @@ local function load_tilesets(tilesets)
     for ty = 0, (v.num_tile_rows - 1) do
       for tx = 0, (v.num_tile_cols - 1) do
         v.tiles[v.firstgid + counter - 1] = love.graphics.newQuad(tx * v.tilewidth, ty * v.tileheight, v.tilewidth, v.tileheight, v.imagewidth, v.imageheight)
-        tileset.all_tiles[v.firstgid + counter - 1] = v -- TODO: Need to improve on this.
+        tilesets.all_tiles[v.firstgid + counter - 1] = v -- TODO: Need to improve on this.
         v.lastgid = v.firstgid + counter - 1
         tx = tx + v.tilewidth
         counter = counter + 1

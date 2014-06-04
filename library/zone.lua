@@ -2,13 +2,6 @@
 
 Zone = {}
 
-function Zone:new(name)
-  setmetatable({}, self)
-  self.__index = self
-  self.name = name
-  return self
-end
-
 function stub(...)
 end
 
@@ -18,7 +11,46 @@ Zone.key_pressed = stub
 Zone.key_released = stub
 Zone.mouse_pressed = stub
 Zone.mouse_released = stub
-Zone.assets = {}
-Zone.code = {}
+
+function load_wad(wad)
+  local code = {}
+  local assets = {}
+  for line in love.filesystem.lines(wad) do
+    if line ~= "\n" and string.find(line, "file://") == 1 then
+      local path = string.gsub(line, "file://", "")
+      local ext = string.match(path, ".([^.]+)$")
+      -- we need to distinguish between other file types and also add
+      -- error checking here
+      if ext == "lua" then
+        local env = setmetatable({}, {__index=_G})
+        local mod = assert(loadfile(path))
+        assert(pcall(setfenv(mod, env)))
+        table.insert(code, env)
+      else
+        local image = love.graphics.newImage(path)
+        table.insert(assets, image)
+      end
+    end
+  end
+  return assets, code
+end
+
+function Zone:new(wad)
+  setmetatable({}, self)
+  self.__index = self
+  self.name = wad
+  self.assets, self.code = load_wad(wad)
+
+  -- set up overrides
+  for _, mod in pairs(self.code) do
+    if type(mod) == "table" and mod.init then
+      self.init = mod.init
+    end
+    if type(mod) == "table" and mod.update then
+      self.update = mod.update
+    end
+  end
+  return self
+end
 
 return Zone

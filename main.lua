@@ -37,6 +37,10 @@ function love.load()
   for wad, _ in pairs(wads) do
     local zone = require("library/zone")
     table.insert(zones, zone:new(wad))
+    logging.log("loaded zone from " .. zone.name)
+  end
+  for _, zone in pairs(zones) do
+    zone.init()
   end
 end
 
