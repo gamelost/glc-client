@@ -1,7 +1,7 @@
 function init()
-  print("initializing dungeon-zone")
+  print("initializing desert-zone")
   -- TODO: should be self.assets[...]
-  tileset = require("assets/zone-test/Dungeon_sans_npcs")
+  tileset = require("assets/zone-test2/desert-caverns")
   loader = require("library/tileset")
   loader.init(tileset)
 end
