@@ -43,22 +43,35 @@ local function draw_tiles()
     local posx = 0
     local posy = 0
 
+    -- "eat" the rest of the layer data if needed
+    local consume = 0
+    local width = math.min(layer.width, settings.zone_width)
+    local left = math.max(layer.width - settings.zone_width, 0)
+
     for k, v in ipairs(layer.data) do
-      if posx >= layer.width then
+      if posx >= width then
         posx = 0
         posy = posy + 1
+        consume = left
+      end
+      if posy >= settings.zone_height then
+        break
       end
 
-      local tile_data = tileset_data.all_tiles[v]
-      if tile_data ~= nil then
-        local tilewidth = tile_data.tilewidth
-        local tileheight = tile_data.tileheight
-        local x = (posx * tile_data.tilewidth)
-        local y = (posy * tile_data.tileheight)
-        love.graphics.draw(tile_data.tileset, tile_data.tiles[v], math.floor(x + px), math.floor(y + py))
+      if consume > 0 then
+        consume = consume - 1
+      else
+        local tile_data = tileset_data.all_tiles[v]
+        if tile_data ~= nil then
+          local tilewidth = tile_data.tilewidth
+          local tileheight = tile_data.tileheight
+          local x = (posx * tile_data.tilewidth)
+          local y = (posy * tile_data.tileheight)
+          love.graphics.draw(tile_data.tileset, tile_data.tiles[v], math.floor(x + px), math.floor(y + py))
+        end
+        posx = posx + 1
       end
 
-      posx = posx + 1
     end
   end
 end

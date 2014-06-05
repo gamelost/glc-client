@@ -137,6 +137,9 @@ function love.keyreleased(key)
     love.event.quit()
   elseif key == "ralt" then
     logging.do_show = not logging.do_show
+  elseif key == "0" then
+    px = 0
+    py = 0
   end
 end
 
