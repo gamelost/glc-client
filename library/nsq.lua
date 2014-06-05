@@ -2,7 +2,7 @@ require "library/http"
 require "library/json"
 require "settings"
 
-NsqHttp = Http:new{url_prefix=settings.url_prefix}
+NsqHttp = Http:new{url_prefix=settings.nsq_http_api}
 
 function NsqHttp:checkStatus()
   return function(status, response)
