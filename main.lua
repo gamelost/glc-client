@@ -1,6 +1,22 @@
 require "settings"
 glcd = require "library/glcd"
 
+function onWall(v)
+  print("WALL: " .. v.name .. ': ' .. v.data.message)
+end
+
+function onPong(v)
+  print("PONG: " .. v.data)
+end
+
+function zoneUpdate(z)
+  for _, zone in pairs(zones) do
+    if zone.name == z.name then
+      zone.data(z.data)
+    end
+  end
+end
+
 -- Called only once when the game is started.
 function love.load()
   logging = require("library/logging")
@@ -36,20 +52,14 @@ function love.load()
   player_quad = love.graphics.newQuad(0, 0, 16, 16, p0:getWidth(), p0:getHeight())
 
   -- monitor filesystem changes
-  fs = love.thread.newThread("scripts/monitor.lua")
+  fs = love.thread.newThread("scripts/monitor-fs.lua")
   wadq = love.thread.newChannel("wads")
   fs:start(wadq)
 
-  local onwall = function(v)
-    local message = v.name .. ': ' .. v.data.message
-    print("WALL: ", message)
-  end
-  glcd.addHandler("wall", onwall)
-
-  local onpong = function(v)
-    print("PONG: ", v.data)
-  end
-  glcd.addHandler("pong", onping)
+  -- add callback handlers to receive server notifications
+  glcd.addHandler("wall", onWall)
+  glcd.addHandler("pong", onPong)
+  glcd.addHandler("zoneupdate", zoneUpdate)
 
   -- initialize zones
   zones = {}
@@ -62,6 +72,8 @@ function love.load()
   for _, zone in pairs(zones) do
     zone.init()
   end
+
+  glcd.send("connected")
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'

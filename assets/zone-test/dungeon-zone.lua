@@ -1,3 +1,5 @@
+data = {}
+
 function init()
   print("initializing dungeon-zone")
   -- TODO: should be self.assets[...]
@@ -7,5 +9,9 @@ function init()
 end
 
 function update()
-  loader.draw_tiles()
+  loader.draw_tiles(data.id)
+end
+
+function data(d)
+  data = d
 end

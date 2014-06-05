@@ -28,7 +28,12 @@ local function init(data)
   load_tilesets(data)
 end
 
-local function draw_tiles()
+local function draw_tiles(id)
+
+  if id == nil then
+    -- zone is not yet active
+    return
+  end
 
   for index, layer in ipairs(tileset_data.layers) do -- paint tiles layer by layer
     --print("Painting "..layer.name.." layer")
