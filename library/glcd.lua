@@ -27,6 +27,8 @@ local n = NsqHttp:new()
 
 local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. clientid
 
+local lasthearbeat = love.timer.getTime()
+
 local send = function(command, msg)
   local val = {
     client = fullclientid,
@@ -35,7 +37,8 @@ local send = function(command, msg)
     data = msg
   }
   local j = json.encode(val)
-  print("NSQ: Notifying server:", n:publish("glcd-server", j))
+  print("NSQ: Sending '" .. command .. "': ", n:publish("glcd-server", j))
+  lasthearbeat = love.timer.getTime()
 end
 
 local handlers = {}
@@ -45,6 +48,13 @@ local addHandler = function(command, handler)
 end
 
 local poll = function()
+  -- heartbeat
+  local elapsed = love.timer.getTime() - lasthearbeat
+  if elapsed > 5.0 then
+    send('heartbeat', {})
+  end
+  
+  -- Incoming
   incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
