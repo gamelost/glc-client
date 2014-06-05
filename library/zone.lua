@@ -35,8 +35,8 @@ function load_wad(wad)
   return assets, code
 end
 
-function Zone:new(wad)
-  setmetatable({}, self)
+function Zone.new(wad)
+  local self = setmetatable({}, Zone)
   self.__index = self
   self.name = wad
   self.assets, self.code = load_wad(wad)
