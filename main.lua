@@ -1,4 +1,5 @@
 require "settings"
+glcd = require "library/glcd"
 
 -- Called only once when the game is started.
 function love.load()
@@ -34,15 +35,21 @@ function love.load()
   poffsety = poffsety + 8
   player_quad = love.graphics.newQuad(0, 0, 16, 16, p0:getWidth(), p0:getHeight())
 
-  -- thread/queue for nsq processing
-  nsqt = love.thread.newThread("test/test-nsq.lua")
-  nsqq = love.thread.newChannel("nsq")
-  nsqt:start(nsqq)
-
   -- monitor filesystem changes
   fs = love.thread.newThread("scripts/monitor.lua")
   wadq = love.thread.newChannel("wads")
   fs:start(wadq)
+
+  local onwall = function(v)
+    local message = v.name .. ': ' .. v.data.message
+    print("WALL: ", message)
+  end
+  glcd.addHandler("wall", onwall)
+
+  local onpong = function(v)
+    print("PONG: ", v.data)
+  end
+  glcd.addHandler("pong", onping)
 
   -- initialize zones
   zones = {}
@@ -60,16 +67,21 @@ end
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
+  glcd.poll()
   if splash then
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
+      glcd.send("wall", {message="Player has entered the Game!"})
     end
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
     --logging.log("Button released:"..pressedKey.value)
 
     local speed = 300 * dt
+    if pressedKey.value >= "a" and pressedKey.value <= "z" then
+      glcd.send("wall", {message=pressedKey.value})
+    end
     if pressedKey.value == "up" then
       py = py + speed
     end
