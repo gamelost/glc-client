@@ -1,6 +1,7 @@
 require "library/nsq"
+require "os"
 require "settings"
-local uuid = require "library/uuid"
+require "socket"
 
 queue = ...
 
@@ -13,7 +14,14 @@ print("NSQ: testing nsq")
 
 local nsq = require "library/nsqc"
 
-local clientid = uuid():sub(1,30)
+-- local clientid = uuid():sub(1,30)
+local s = socket.udp()
+s:setpeername("8.8.8.8", 51)
+local ip, _ = s:getsockname()
+print("IP: ", ip)
+local clientid = ip .. "-" .. os.getenv("USER")
+
+clientid = clientid:sub(1,30)
 
 print("NSQ: Client ID: '" .. clientid .. "'")
 
