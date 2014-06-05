@@ -1,4 +1,4 @@
-data = {}
+state = {}
 
 function init()
   print("initializing desert-zone")
@@ -9,9 +9,9 @@ function init()
 end
 
 function update()
-  loader.draw_tiles(d.id)
+  loader.draw_tiles(state.id)
 end
 
 function data(d)
-  data = d
+  state = d
 end

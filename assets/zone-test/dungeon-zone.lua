@@ -1,4 +1,4 @@
-data = {}
+state = {}
 
 function init()
   print("initializing dungeon-zone")
@@ -9,9 +9,9 @@ function init()
 end
 
 function update()
-  loader.draw_tiles(data.id)
+  loader.draw_tiles(state.id)
 end
 
 function data(d)
-  data = d
+  state = d
 end

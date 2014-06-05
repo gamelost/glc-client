@@ -6,7 +6,7 @@ function stub(...)
 end
 
 Zone.init = stub
-zone.data = stub
+Zone.data = stub
 Zone.update = stub
 Zone.key_pressed = stub
 Zone.key_released = stub
