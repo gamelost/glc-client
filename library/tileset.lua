@@ -18,9 +18,9 @@ local function load_tilesets(tilesets)
       end
       ty = ty + v.tileheight
     end
-    print(v.image .. ": Loaded tiles #" .. v.firstgid .. " - " .. (v.lastgid))
+    --print(v.image .. ": Loaded tiles #" .. v.firstgid .. " - " .. (v.lastgid))
   end
-  print("Done loading tiles")
+  --print("Done loading tiles")
 end
 
 local function init(data)
@@ -40,7 +40,8 @@ local function draw_tiles()
     local x = layer.x
     local y = layer.y
     local opacity = layer.opacity
-    local posx, posy = 0, 0
+    local posx = 0
+    local posy = 0
 
     for k, v in ipairs(layer.data) do
       if posx >= layer.width then
@@ -52,8 +53,11 @@ local function draw_tiles()
       if tile_data ~= nil then
         local tilewidth = tile_data.tilewidth
         local tileheight = tile_data.tileheight
-        love.graphics.draw(tile_data.tileset, tile_data.tiles[v], posx * tile_data.tilewidth, posy * tile_data.tileheight)
+        local x = (posx * tile_data.tilewidth)
+        local y = (posy * tile_data.tileheight)
+        love.graphics.draw(tile_data.tileset, tile_data.tiles[v], math.floor(x + px), math.floor(y + py))
       end
+
       posx = posx + 1
     end
   end

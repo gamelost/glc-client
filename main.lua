@@ -71,16 +71,16 @@ function love.update(dt)
 
     local speed = 300 * dt
     if pressedKey.value == "up" then
-      py = py - speed
-    end
-    if pressedKey.value == "down" then
       py = py + speed
     end
+    if pressedKey.value == "down" then
+      py = py - speed
+    end
     if pressedKey.value == "left" then
-      px = px - speed
+      px = px + speed
     end
     if pressedKey.value == "right" then
-      px = px + speed
+      px = px - speed
     end
 
     pressedKey.dirtyKey = true
@@ -97,6 +97,7 @@ function love.draw()
     love.graphics.draw(glc, x, y)
     love.graphics.setBackgroundColor(0x62, 0x36, 0xb3)
   else
+    canvas:clear(0x62, 0x36, 0xb3)
     love.graphics.setCanvas(canvas) -- draw to this canvas
     -- draw zones
     if #zones == 0 then
