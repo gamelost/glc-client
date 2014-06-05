@@ -1,5 +1,8 @@
 settings = {}
-settings.url_prefix = "http://lethalcode.net:4151"
+settings.nsq_http_api = "http://glcwalker.ohl:4151"
+settings.nsq_host = "glcwalker.ohl"
+settings.nsq_port = 4150
+
 settings.tile_height = 16
 settings.tile_width = 16
 -- when changing the tiles_per_* variables, try to preserve the aspect
