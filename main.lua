@@ -9,10 +9,11 @@ function onPong(v)
   print("PONG: " .. v.data)
 end
 
-function zoneUpdate(z)
+function updateZone(z)
   for _, zone in pairs(zones) do
-    if zone.name == z.name then
-      zone.data(z.data)
+    --print("trying " .. z.data.data.zone .. " against " .. zone.name)
+    if zone.name == z.data.data.zone then
+      zone.data(z.data.data)
     end
   end
 end
@@ -59,7 +60,7 @@ function love.load()
   -- add callback handlers to receive server notifications
   glcd.addHandler("wall", onWall)
   glcd.addHandler("pong", onPong)
-  glcd.addHandler("zoneupdate", zoneUpdate)
+  glcd.addHandler("updateZone", updateZone)
 
   -- initialize zones
   zones = {}

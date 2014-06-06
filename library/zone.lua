@@ -48,6 +48,9 @@ function Zone.new(wad)
     if type(mod) == "table" and mod.init then
       self.init = mod.init
     end
+    if type(mod) == "table" and mod.data then
+      self.data = mod.data
+    end
     if type(mod) == "table" and mod.update then
       self.update = mod.update
     end
