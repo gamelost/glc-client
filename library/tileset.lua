@@ -1,4 +1,4 @@
-local function load_tilesets(tilesets)
+local function load_tiles(tilesets)
   tilesets.all_tiles = {}
   for k, v in ipairs(tilesets.tilesets) do
     v.tileset = love.graphics.newImage(v.image)
@@ -21,29 +21,24 @@ local function load_tilesets(tilesets)
     --print(v.image .. ": Loaded tiles #" .. v.firstgid .. " - " .. (v.lastgid))
   end
   --print("Done loading tiles")
+  return tilesets
 end
 
-local function init(data)
-  tileset_data = data
-  load_tilesets(data)
-end
-
-local function draw_tiles(id)
+local function draw_tiles(tileset, id)
 
   if id == nil then
     -- zone is not yet active
     return
   end
 
-  for index, layer in ipairs(tileset_data.layers) do -- paint tiles layer by layer
+  for index, layer in ipairs(tileset.layers) do -- paint tiles layer by layer
     --print("Painting "..layer.name.." layer")
     if not layer.visible then
       --print("Layer is not visible, painting canceled.")
       break
     end
 
-    local x = layer.x
-    local y = layer.y
+    local zone_offset = (id * settings.zone_width * settings.tile_width)
     local opacity = layer.opacity
     local posx = 0
     local posy = 0
@@ -66,13 +61,13 @@ local function draw_tiles(id)
       if consume > 0 then
         consume = consume - 1
       else
-        local tile_data = tileset_data.all_tiles[v]
+        local tile_data = tileset.all_tiles[v]
         if tile_data ~= nil then
           local tilewidth = tile_data.tilewidth
           local tileheight = tile_data.tileheight
-          local x = (posx * tile_data.tilewidth)
-          local y = (posy * tile_data.tileheight)
-          love.graphics.draw(tile_data.tileset, tile_data.tiles[v], math.floor(x + px), math.floor(y + py))
+          local x = layer.x + (posx * tile_data.tilewidth)
+          local y = layer.y + (posy * tile_data.tileheight)
+          love.graphics.draw(tile_data.tileset, tile_data.tiles[v], zone_offset + math.floor(x + px), math.floor(y + py))
         end
         posx = posx + 1
       end
@@ -82,6 +77,5 @@ local function draw_tiles(id)
 end
 
 glc_tileset = {}
-glc_tileset.init = init
+glc_tileset.load_tiles = load_tiles
 glc_tileset.draw_tiles = draw_tiles
-return glc_tileset
