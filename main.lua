@@ -157,7 +157,7 @@ function love.draw()
     for client, p in pairs(otherPlayers) do
       local rpx = p.data.px - px
       local rpy = p.data.py - py
-      if rpx > 0 and rpy > 0 and rpx < width and rpy < width then
+      if rpx > 0 and rpy > 0 and rpx < width and rpy < height then
         love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
       end
     end
