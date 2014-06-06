@@ -9,9 +9,9 @@ function init()
 end
 
 function update()
-  glc_tileset.draw_tiles(state.tileset, state.id)
+  glc_tileset.draw_tiles(state.tileset, state.data.id)
 end
 
 function data(d)
-  state = d
+  state.data = d
 end
