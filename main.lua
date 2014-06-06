@@ -1,12 +1,27 @@
 require "settings"
 glcd = require "library/glcd"
 
+otherPlayers = {}
+
 function onWall(v)
   print("WALL: " .. v.name .. ': ' .. v.data.message)
 end
 
 function onPong(v)
   print("PONG: " .. v.data)
+end
+
+function onPlayerGone(v)
+  if v.data.client ~= glcd.clientid then
+    otherPlayers[v.data.client] = nil
+  end
+end
+
+function onPlayerState(v)
+  if v.data.client ~= glcd.clientid then
+    logging.log(v.data.client)
+    otherPlayers[v.data.client] = v.data
+  end
 end
 
 function updateZone(z)
@@ -61,6 +76,8 @@ function love.load()
   glcd.addHandler("wall", onWall)
   glcd.addHandler("pong", onPong)
   glcd.addHandler("updateZone", updateZone)
+  glcd.addHandler("playerGone", onPlayerGone)
+  glcd.addHandler("playerState", onPlayerState)
 
   -- initialize zones
   zones = {}
@@ -75,6 +92,7 @@ function love.load()
   end
 
   glcd.send("connected")
+  glcd.send("playerState", {py=0, px=0})
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -92,9 +110,9 @@ function love.update(dt)
     --logging.log("Button released:"..pressedKey.value)
 
     local speed = 300 * dt
-    if pressedKey.value >= "a" and pressedKey.value <= "z" then
-      glcd.send("wall", {message=pressedKey.value})
-    end
+    -- if pressedKey.value >= "a" and pressedKey.value <= "z" then
+    --   glcd.send("wall", {message=pressedKey.value})
+    -- end
     if pressedKey.value == "up" then
       py = py + speed
     end
@@ -107,6 +125,8 @@ function love.update(dt)
     if pressedKey.value == "right" then
       px = px - speed
     end
+
+    glcd.send("playerState", {py=py, px=px})
 
     pressedKey.dirtyKey = true
   end
@@ -133,6 +153,14 @@ function love.draw()
     end
     -- draw player
     love.graphics.draw(p0, player_quad, 0, 0, 0, 1, 1, poffsetx, poffsety)
+    -- draw other players
+    for client, p in pairs(otherPlayers) do
+      local rpx = p.data.px - px
+      local rpy = p.data.py - py
+      if rpx > 0 and rpy > 0 and rpx < width and rpy < width then
+        love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+      end
+    end
     -- set target canvas back to screen and scale
     love.graphics.setCanvas()
     love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY)
