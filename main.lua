@@ -19,7 +19,6 @@ end
 
 function onPlayerState(v)
   if v.data.client ~= glcd.clientid then
-    logging.log(v.data.client)
     otherPlayers[v.data.client] = v.data
   end
 end
@@ -155,11 +154,9 @@ function love.draw()
     love.graphics.draw(p0, player_quad, 0, 0, 0, 1, 1, poffsetx, poffsety)
     -- draw other players
     for client, p in pairs(otherPlayers) do
-      local rpx = p.data.px - px
-      local rpy = p.data.py - py
-      if rpx > 0 and rpy > 0 and rpx < width and rpy < height then
-        love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
-      end
+      local rpx = math.floor(px - p.data.px)
+      local rpy = math.floor(py - p.data.py)
+      love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
     end
     -- set target canvas back to screen and scale
     love.graphics.setCanvas()
