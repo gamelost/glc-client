@@ -12,13 +12,21 @@ function onPong(v)
 end
 
 function onPlayerGone(v)
-  if v.data.client ~= glcd.clientid then
+  if v.data == nil then
+    -- error from the server? we shouldn't see this
+    print(v)
+  end
+  if v.data and v.data.client ~= glcd.clientid then
     otherPlayers[v.data.client] = nil
   end
 end
 
 function onPlayerState(v)
-  if v.data.client ~= glcd.clientid then
+  if v.data == nil then
+    -- error from the server? we shouldn't see this
+    print(v)
+  end
+  if v.data and v.data.client ~= glcd.clientid then
     otherPlayers[v.data.client] = v.data
   end
 end
