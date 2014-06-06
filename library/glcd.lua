@@ -68,5 +68,6 @@ end
 return {
   send = send,
   poll = poll,
-  addHandler = addHandler
+  addHandler = addHandler,
+  clientid = fullclientid
 }

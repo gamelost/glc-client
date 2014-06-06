@@ -9,7 +9,9 @@ function init()
 end
 
 function update()
-  glc_tileset.draw_tiles(state.tileset, state.data.id)
+  if state.data then
+    glc_tileset.draw_tiles(state.tileset, state.data.id)
+  end
 end
 
 function data(d)
