@@ -110,9 +110,9 @@ function love.update(dt)
     --logging.log("Button released:"..pressedKey.value)
 
     local speed = 300 * dt
-    -- if pressedKey.value >= "a" and pressedKey.value <= "z" then
-    --   glcd.send("wall", {message=pressedKey.value})
-    -- end
+    if pressedKey.value >= "a" and pressedKey.value <= "z" then
+      glcd.send("wall", {message=pressedKey.value})
+    end
     if pressedKey.value == "up" then
       py = py + speed
     end
