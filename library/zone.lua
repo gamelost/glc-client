@@ -39,6 +39,7 @@ end
 function Zone.new(wad)
   local self = setmetatable({}, Zone)
   self.__index = self
+  self.state = {}
   self.name = wad
   self.assets, self.code = load_wad(wad)
 
