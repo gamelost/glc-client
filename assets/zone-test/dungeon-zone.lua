@@ -9,6 +9,7 @@ function init()
 end
 
 function update()
+  local data = state.data or {}
   glc_tileset.draw_tiles(state.tileset, state.data.id)
 end
 
