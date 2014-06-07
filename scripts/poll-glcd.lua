@@ -9,7 +9,7 @@ local nsq = require "library/nsqc"
 
 local c = nsq.new(settings.nsq_host, settings.nsq_port)
 
-c:subscribe(clientid, "main")
+c:subscribe(settings.nsq_gamestate_topic, clientid)
 
 local handler = function(job)
   -- print(string.format(
