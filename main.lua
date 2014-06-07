@@ -1,14 +1,19 @@
 require "settings"
 glcd = require "library/glcd"
+console = require("library/console")
 
 otherPlayers = {}
 
 function onWall(v)
-  print("WALL: " .. v.name .. ': ' .. v.data.message)
+  console.log("WALL: " .. v.name .. ': ' .. v.data.message)
 end
 
 function onPong(v)
   print("PONG: " .. v.data)
+end
+
+function chat(text)
+  glcd.send("wall", {message=text})
 end
 
 function onPlayerGone(v)
@@ -42,9 +47,8 @@ end
 
 -- Called only once when the game is started.
 function love.load()
-  logging = require("library/logging")
-  logging.log("** starting game lost crash client")
-  logging.do_show = true
+  console.log("** starting game lost crash client")
+  console.show()
 
   pressedKey = {value = nil, dirtyKey = false}
 
@@ -86,13 +90,16 @@ function love.load()
   glcd.addHandler("playerGone", onPlayerGone)
   glcd.addHandler("playerState", onPlayerState)
 
+  -- Add console handlers.
+  console.defaultHandler = chat
+
   -- initialize zones
   zones = {}
   wads = wadq:demand()
   for wad, _ in pairs(wads) do
     local zone = require("library/zone")
     table.insert(zones, zone.new(wad))
-    logging.log("loaded zone from " .. wad)
+    console.log("loaded zone from " .. wad)
   end
   for _, zone in pairs(zones) do
     zone.init()
@@ -114,12 +121,13 @@ function love.update(dt)
     end
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
-    --logging.log("Button released:"..pressedKey.value)
+    --console.log("Button released:"..pressedKey.value)
+    if pressedKey.value == "0" then
+      px = 0
+      py = 0
+    end
 
     local speed = 300 * dt
-    if pressedKey.value >= "a" and pressedKey.value <= "z" then
-      glcd.send("wall", {message=pressedKey.value})
-    end
     if pressedKey.value == "up" then
       py = py + speed
     end
@@ -153,7 +161,7 @@ function love.draw()
     love.graphics.setCanvas(canvas) -- draw to this canvas
     -- draw zones
     if #zones == 0 then
-      logging.log("No zones found.")
+      console.log("No zones found.")
     end
     for _, zone in pairs(zones) do
       zone.update()
@@ -171,7 +179,7 @@ function love.draw()
     love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY)
   end
 
-  logging.display_log()
+  console.draw()
 end
 
 -- Mouse pressed.
@@ -186,18 +194,33 @@ end
 function love.keypressed(key)
 end
 
+local keymode = "game"
+
 -- Keyboard key released.
+function love.textinput(text)
+  if keymode == "console" then
+    console.input.text(text)
+  end
+end
+
 function love.keyreleased(key)
-  splash = false
-  pressedKey.value = key
-  pressedKey.dirtyKey = false
-  if key == "escape" then
-    love.event.quit()
-  elseif key == "ralt" then
-    logging.do_show = not logging.do_show
-  elseif key == "0" then
-    px = 0
-    py = 0
+  if keymode == "game" then
+    if key == "escape" then
+      love.event.quit()
+    elseif key == "return" then
+      console.input.start()
+      keymode = "console"
+    else
+      pressedKey.value = key
+      pressedKey.dirtyKey = false
+    end
+  elseif keymode == "console" then
+    if key == "escape" then
+      console.input.cancel()
+      keymode = "game"
+    elseif #key > 1 then
+      console.input.key(key)
+    end
   end
 end
 
