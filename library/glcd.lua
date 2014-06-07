@@ -25,7 +25,7 @@ glcd:start(clientid, glcdrecv)
 
 local n = NsqHttp:new()
 
-local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. clientid
+local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_gamestate_topic
 
 local lasthearbeat = love.timer.getTime()
 
