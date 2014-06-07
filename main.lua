@@ -1,14 +1,19 @@
 require "settings"
 glcd = require "library/glcd"
+console = require("library/console")
 
 otherPlayers = {}
 
 function onWall(v)
-  print("WALL: " .. v.name .. ': ' .. v.data.message)
+  console.log("WALL: " .. v.name .. ': ' .. v.data.message)
 end
 
 function onPong(v)
   print("PONG: " .. v.data)
+end
+
+function chat(text)
+  glcd.send("wall", {message=text})
 end
 
 function onPlayerGone(v)
@@ -42,7 +47,6 @@ end
 
 -- Called only once when the game is started.
 function love.load()
-  console = require("library/console")
   console.log("** starting game lost crash client")
   console.show()
 
@@ -85,6 +89,9 @@ function love.load()
   glcd.addHandler("updateZone", updateZone)
   glcd.addHandler("playerGone", onPlayerGone)
   glcd.addHandler("playerState", onPlayerState)
+
+  -- Add console handlers.
+  console.defaultHandler = chat
 
   -- initialize zones
   zones = {}
