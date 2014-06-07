@@ -69,5 +69,6 @@ return {
   send = send,
   poll = poll,
   addHandler = addHandler,
-  clientid = fullclientid
+  clientid = fullclientid,
+  name = playername
 }
