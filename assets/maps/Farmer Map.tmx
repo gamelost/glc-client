@@ -2,46 +2,46 @@
 <!DOCTYPE map SYSTEM "http://mapeditor.org/dtd/1.0/map.dtd">
 <map version="1.0" orientation="orthogonal" width="25" height="25" tilewidth="16" tileheight="16">
  <tileset firstgid="1" name="Wall" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Wall.png" width="320" height="816"/>
+  <image source="../tileset/DawnLike_0/Objects/Wall.png" width="320" height="816"/>
  </tileset>
  <tileset firstgid="1021" name="Floor" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Floor.png" width="336" height="624"/>
+  <image source="../tileset/DawnLike_0/Objects/Floor.png" width="336" height="624"/>
  </tileset>
  <tileset firstgid="1840" name="Pit0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Pit0.png" width="128" height="512"/>
+  <image source="../tileset/DawnLike_0/Objects/Pit0.png" width="128" height="512"/>
  </tileset>
  <tileset firstgid="2096" name="Door0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Door0.png" width="128" height="80"/>
+  <image source="../tileset/DawnLike_0/Objects/Door0.png" width="128" height="80"/>
  </tileset>
  <tileset firstgid="2136" name="Decor0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Decor0.png" width="128" height="352"/>
+  <image source="../tileset/DawnLike_0/Objects/Decor0.png" width="128" height="352"/>
  </tileset>
  <tileset firstgid="2312" name="Ground0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Objects/Ground0.png" width="128" height="112"/>
+  <image source="../tileset/DawnLike_0/Objects/Ground0.png" width="128" height="112"/>
  </tileset>
  <tileset firstgid="2368" name="Player0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Characters/Player0.png" width="128" height="240"/>
+  <image source="../tileset/DawnLike_0/Characters/Player0.png" width="128" height="240"/>
  </tileset>
  <tileset firstgid="2488" name="Pest0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Characters/Pest0.png" width="128" height="176"/>
+  <image source="../tileset/DawnLike_0/Characters/Pest0.png" width="128" height="176"/>
  </tileset>
  <tileset firstgid="2576" name="Rodent0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Characters/Rodent0.png" width="128" height="64"/>
+  <image source="../tileset/DawnLike_0/Characters/Rodent0.png" width="128" height="64"/>
  </tileset>
  <tileset firstgid="2608" name="Undead0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Characters/Undead0.png" width="128" height="160"/>
+  <image source="../tileset/DawnLike_0/Characters/Undead0.png" width="128" height="160"/>
  </tileset>
  <tileset firstgid="2688" name="Money" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Items/Money.png" width="128" height="128"/>
+  <image source="../tileset/DawnLike_0/Items/Money.png" width="128" height="128"/>
  </tileset>
  <tileset firstgid="2752" name="Chest0" tilewidth="16" tileheight="16">
-  <image source="../../glc/glc-client/assets/tileset/DawnLike_0/Items/Chest0.png" width="128" height="48"/>
+  <image source="../tileset/DawnLike_0/Items/Chest0.png" width="128" height="48"/>
  </tileset>
  <tileset firstgid="2776" name="Meta Tilesets" tilewidth="16" tileheight="16">
   <properties>
    <property name="metadata" value="true"/>
   </properties>
-  <image source="trans_50.png" width="128" height="16"/>
+  <image source="../trans_50.png" width="128" height="16"/>
   <tile id="0">
    <properties>
     <property name="collidable" value="true"/>
@@ -79,25 +79,25 @@
   </tile>
  </tileset>
  <tileset firstgid="2784" name="Portions16x16" tilewidth="16" tileheight="16">
-  <image source="Tilesets/Portions16x16.png" width="96" height="144"/>
+  <image source="../tileset/Misc/Portions16x16.png" width="96" height="144"/>
  </tileset>
  <tileset firstgid="2838" name="Robot16x16" tilewidth="16" tileheight="16">
-  <image source="Tilesets/Robot16x16.png" width="192" height="128"/>
+  <image source="../tileset/Misc/Robot16x16.png" width="192" height="128"/>
  </tileset>
  <tileset firstgid="2934" name="Monster16x16" tilewidth="16" tileheight="16">
-  <image source="Tilesets/Monster16x16.png" width="96" height="208"/>
+  <image source="../tileset/Misc/Monster16x16.png" width="96" height="208"/>
  </tileset>
  <tileset firstgid="3012" name="2Equipment16x16 Tileset" tilewidth="16" tileheight="16">
-  <image source="Tilesets/2Equipment16x16 Tileset.png" width="256" height="256"/>
+  <image source="../tileset/Misc/2Equipment16x16 Tileset.png" width="256" height="256"/>
  </tileset>
  <tileset firstgid="3268" name="Desert16x16" tilewidth="16" tileheight="16">
-  <image source="Tilesets/Desert16x16.png" width="256" height="256"/>
+  <image source="../tileset/Misc/Desert16x16.png" width="256" height="256"/>
  </tileset>
  <tileset firstgid="3524" name="Dragon32x32" tilewidth="32" tileheight="32">
-  <image source="Tilesets/Dragon32x32.png" width="128" height="128"/>
+  <image source="../tileset/Misc/Dragon32x32.png" width="128" height="128"/>
  </tileset>
  <tileset firstgid="3540" name="Equipment16x16" tilewidth="16" tileheight="16">
-  <image source="Tilesets/Equipment16x16.png" width="606" height="336"/>
+  <image source="../tileset/Misc/Equipment16x16.png" width="606" height="336"/>
  </tileset>
  <layer name="Farmer Tile Layer" width="25" height="25">
   <data encoding="csv">
