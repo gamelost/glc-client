@@ -50,6 +50,10 @@ function love.load()
     avatars[i+1] = love.graphics.newQuad(i*16, 0, 16, 16, quad_width, quad_height)
   end
 
+  -- world physics.
+  love.physics.setMeter(16)
+  world = love.physics.newWorld(0, 0, true)
+
   -- monitor filesystem changes
   fs = love.thread.newThread("scripts/monitor-fs.lua")
   wadq = love.thread.newChannel("wads")
@@ -84,6 +88,8 @@ end
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
+  world:update(dt)
+
   glcd.poll()
   if splash then
     elapsed = love.timer.getTime() - splash_time
@@ -122,6 +128,7 @@ end
 function hashPlayerName(name)
   return #name % 8 + 1
 end
+
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
 
