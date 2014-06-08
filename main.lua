@@ -33,7 +33,7 @@ function onPlayerState(v)
   if v.data == nil or v.client == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
-  else
+  elseif v.name ~= glcd.name then
     print(inspect(v))
     otherPlayers[v.name] = v.data
   end
