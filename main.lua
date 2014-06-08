@@ -175,8 +175,8 @@ function love.draw()
     love.graphics.draw(p0, player_quad, 0, 0, 0, 1, 1, poffsetx, poffsety)
     -- draw other players
     for client, p in pairs(otherPlayers) do
-      local rpx = math.floor(px - p.data.px)
-      local rpy = math.floor(py - p.data.py)
+      local rpx = math.floor(px - p.px)
+      local rpy = math.floor(py - p.py)
       love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
     end
     -- set target canvas back to screen and scale
