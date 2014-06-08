@@ -40,9 +40,15 @@ function love.load()
   -- adjust for the middle of the sprite itself
   poffsetx = poffsetx + 8
   poffsety = poffsety + 8
-  player_quad = love.graphics.newQuad(0, 0, 16, 16, p0:getWidth(), p0:getHeight())
   -- initialize other player data
   otherPlayers = {}
+
+  -- generate a table of avatars from the first row of sprite image
+  avatars = {}
+  local quad_width, quad_height = p0:getWidth(), p0:getHeight()
+  for i=0,quad_width/16 do
+    avatars[i+1] = love.graphics.newQuad(i*16, 0, 16, 16, quad_width, quad_height)
+  end
 
   -- monitor filesystem changes
   fs = love.thread.newThread("scripts/monitor-fs.lua")
@@ -113,6 +119,9 @@ function love.update(dt)
   end
 end
 
+function hashPlayerName(name)
+  return #name % 8 + 1
+end
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
 
@@ -133,12 +142,12 @@ function love.draw()
       zone.update()
     end
     -- draw player
-    love.graphics.draw(p0, player_quad, 0, 0, 0, 1, 1, poffsetx, poffsety)
+    love.graphics.draw(p0, avatars[hashPlayerName(glcd.name)], 0, 0, 0, 1, 1, poffsetx, poffsety)
     -- draw other players
     for client, p in pairs(otherPlayers) do
       local rpx = math.floor(px - p.px)
       local rpy = math.floor(py - p.py)
-      love.graphics.draw(p1, player_quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+      love.graphics.draw(p1, avatars[hashPlayerName(client)], rpx, rpy, 0, 1, 1, poffsetx, poffsety)
     end
     -- set target canvas back to screen and scale
     love.graphics.setCanvas()
