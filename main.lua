@@ -40,6 +40,9 @@ function love.load()
   px = 0
   py = 0
   avatarId = "ava1.png"
+  -- default player speed
+  pSpeed = 50 
+  
   -- get the middle of the screen
   poffsetx = - canvas:getWidth() / 2
   poffsety = - canvas:getHeight() / 2
@@ -104,7 +107,7 @@ function love.update(dt)
       py = 0
     end
 
-    local speed = 300 * dt
+    local speed = pSpeed * dt 
     if pressedKey.value == "up" then
       py = py + speed
     end
@@ -124,7 +127,6 @@ function love.update(dt)
 
     glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
 
-    pressedKey.dirtyKey = true
   end
 end
 
@@ -236,6 +238,8 @@ end
 
 -- Keyboard key pressed.
 function love.keypressed(key)
+  pressedKey.value = key
+  pressedKey.dirtyKey = false 
 end
 
 -- Keyboard key released.
@@ -255,7 +259,7 @@ function love.keyreleased(key)
       keymode = "console"
     else
       pressedKey.value = key
-      pressedKey.dirtyKey = false
+      pressedKey.dirtyKey = true 
     end
   elseif keymode == "console" then
     if key == "tab" then
