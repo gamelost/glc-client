@@ -1,52 +1,8 @@
-inspect = require("library/inspect")
 require "settings"
-glcd = require "library/glcd"
+
+glcd = require("library/glcd")
 console = require("library/console")
-local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
-love.graphics.setFont(font)
-
-otherPlayers = {}
-
-function onWall(v)
-  console.log("WALL: " .. v.name .. ': ' .. v.data.message)
-end
-
-function onPong(v)
-  print("PONG: " .. v.data)
-end
-
-function chat(text)
-  glcd.send("wall", {message=text})
-end
-
-function onPlayerGone(v)
-  if v == nil then
-    -- error from the server? we shouldn't see this
-    print("error: onplayergone information was empty")
-  else
-    otherPlayers[v] = nil
-  end
-end
-
-function onPlayerState(v)
-  -- testing
-  if v.data == nil or v.client == nil then
-    -- error from the server? we shouldn't see this
-    print("error: onplayerstate information was empty")
-  elseif v.name ~= glcd.name then
-    print(inspect(v))
-    otherPlayers[v.name] = v.data
-  end
-end
-
-function updateZone(z)
-  for _, zone in pairs(zones) do
-    --print("trying " .. z.zone .. " against " .. zone.name)
-    if zone.name == z.zone then
-      zone.data(z)
-    end
-  end
-end
+handlers = require("glcd-handlers")
 
 -- Called only once when the game is started.
 function love.load()
@@ -54,12 +10,17 @@ function love.load()
   console.show()
 
   pressedKey = {value = nil, dirtyKey = false}
+  keymode = "game"
 
   -- set up the canvas
   canvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
                                    settings.tiles_per_column * settings.tile_height)
   canvas:setFilter("nearest", "nearest") -- linear interpolation
   scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
+
+  -- set up the font
+  local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
+  love.graphics.setFont(font)
 
   -- load the splash screen
   splash = true
@@ -80,6 +41,8 @@ function love.load()
   poffsetx = poffsetx + 8
   poffsety = poffsety + 8
   player_quad = love.graphics.newQuad(0, 0, 16, 16, p0:getWidth(), p0:getHeight())
+  -- initialize other player data
+  otherPlayers = {}
 
   -- monitor filesystem changes
   fs = love.thread.newThread("scripts/monitor-fs.lua")
@@ -87,11 +50,11 @@ function love.load()
   fs:start(wadq)
 
   -- add callback handlers to receive server notifications
-  glcd.addHandler("wall", onWall)
-  glcd.addHandler("pong", onPong)
-  glcd.addHandler("updateZone", updateZone)
-  glcd.addHandler("playerGone", onPlayerGone)
-  glcd.addHandler("playerState", onPlayerState)
+  glcd.addHandler("wall", handlers.wall)
+  glcd.addHandler("error", handlers.error)
+  glcd.addHandler("updateZone", handlers.updateZone)
+  glcd.addHandler("playerGone", handlers.playerGone)
+  glcd.addHandler("playerState", handlers.playerState)
 
   -- Add console handlers.
   console.defaultHandler = chat
@@ -235,8 +198,6 @@ end
 function love.keypressed(key)
 end
 
-local keymode = "game"
-
 -- Keyboard key released.
 function love.textinput(text)
   if keymode == "console" then
@@ -245,10 +206,11 @@ function love.textinput(text)
 end
 
 function love.keyreleased(key)
+  if key == "escape" then
+    love.event.quit()
+  end
   if keymode == "game" then
-    if key == "escape" then
-      love.event.quit()
-    elseif key == "return" then
+    if key == "tab" then
       console.input.start()
       keymode = "console"
     else
@@ -256,7 +218,7 @@ function love.keyreleased(key)
       pressedKey.dirtyKey = false
     end
   elseif keymode == "console" then
-    if key == "escape" then
+    if key == "tab" then
       console.input.cancel()
       keymode = "game"
     elseif #key > 1 then

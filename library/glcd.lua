@@ -3,61 +3,75 @@ require "settings"
 require "socket"
 require "json"
 
--- Generate the users' client ID
-local nsq = require "library/nsqc"
+underscore = require("library/underscore")
+inspect = require("library/inspect")
+nsq = require("library/nsqc")
 
--- local clientid = uuid():sub(1,30)
-local s = socket.udp()
+-- generate users' client ID
+s = socket.udp()
 s:setpeername("8.8.8.8", 51)
-local ip, _ = s:getsockname()
-print("IP: ", ip)
-local playername = os.getenv("USER")
-local clientid = ip .. "-" .. playername
+ip, _ = s:getsockname()
+playername = os.getenv("USER")
+clientid = ip .. "-" .. playername
+fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_daemon_topic
 
-clientid = clientid:sub(1,30)
+-- poll glcd (the server)
+glcd = love.thread.newThread("scripts/poll-glcd.lua")
+glcdrecv = love.thread.newChannel()
+glcd:start(clientid:sub(1,30), glcdrecv)
 
--- Create the glcd
+-- nsq publishing connection
+pub = NsqHttp:new()
 
-local glcd = love.thread.newThread("scripts/poll-glcd.lua")
-local glcdrecv = love.thread.newChannel()
+-- heartbeat
+lastheartbeat = love.timer.getTime()
 
-glcd:start(clientid, glcdrecv)
+-- handlers
+handlers = {}
 
-local n = NsqHttp:new()
+function addHandler(command, handler)
+  assert(handler ~= nil)
+  handlers[command] = handler
+end
 
-local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_daemon_topic
-
-local lasthearbeat = love.timer.getTime()
-
-local send = function(command, msg)
+function send(command, msg)
   local val = {
     client = fullclientid,
     name = playername,
     command = command,
     data = msg
   }
-  local j = json.encode(val)
-  print("NSQ: Sending '" .. command .. "': ", n:publish(settings.nsq_daemon_topic, j))
-  lasthearbeat = love.timer.getTime()
+  local data = json.encode(val)
+  local result = pub:publish(settings.nsq_daemon_topic, data)
+  print("NSQ: Sending '" .. command .. "': ", result)
+  lastheartbeat = love.timer.getTime()
 end
 
-local handlers = {}
-
-local addHandler = function(command, handler)
-  handlers[command] = handler
+function table.contains(table, element)
+  for _, value in pairs(table) do
+    if value == element then
+      return table[element]
+    end
+  end
+  return nil
 end
 
-local poll = function()
+function poll()
   -- heartbeat
-  local elapsed = love.timer.getTime() - lasthearbeat
+  local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then
-    send('heartbeat', {"foo"})
+    send('heartbeat', {"ba-dum"})
   end
 
   -- Incoming
   incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
+    print("incoming: " .. inspect(msg))
+
+    print(msg[0])
+    assert(#msg==0)
+
     -- todo: better way of doing this, kthxbai
     if msg.updateZone and handlers["updateZone"] then
       handlers["updateZone"](msg.updateZone)
