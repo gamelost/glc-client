@@ -183,12 +183,33 @@ function love.draw()
 
     -- Write name above avatar --
     local MAX_WIDTH_OF_NAME = 200
+    for client, p in pairs(otherPlayers) do
+      if client ~= glcd.name then
+        local rpx = math.floor(px - p.px)
+        local rpy = math.floor(py - p.py)
+
+        local name_length = string.len(client) * 10
+        local background_offset = name_length / 2
+        local name_offset = MAX_WIDTH_OF_NAME / 2
+
+        love.graphics.setColor(0, 0, 0, 128)
+        love.graphics.rectangle("fill", width/2-background_offset+rpx*scaleX, height/2-60+rpy*scaleY, name_length, 18)
+
+        -- Set color of name to white and fill in name
+        love.graphics.setColor(0, 255, 128)
+        love.graphics.printf(client, width/2-name_offset+rpx*scaleX, height/2-60+rpy*scaleY, MAX_WIDTH_OF_NAME, "center")
+
+        -- Reset color back to white
+        love.graphics.setColor(255, 255, 255)
+      end
+    end
+
     local name_length = string.len(glcd.name) * 10
     local background_offset = (width - name_length)/2
     local name_offset = (width - MAX_WIDTH_OF_NAME)/2
 
     -- Set background color to black and fill in background
-    love.graphics.setColor(16, 16, 16)
+    love.graphics.setColor(0, 0, 0, 128)
     love.graphics.rectangle("fill", background_offset, height/2 - 16*scaleY, name_length, 18)
 
     -- Set color of name to white and fill in name
