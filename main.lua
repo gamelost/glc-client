@@ -1,3 +1,4 @@
+inspect = require("library/inspect")
 require "settings"
 glcd = require "library/glcd"
 console = require("library/console")
@@ -19,15 +20,17 @@ function chat(text)
 end
 
 function onPlayerGone(v)
-  if v.data == nil or v.client == nil then
+  if v == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayergone information was empty")
-  elseif v.data and v.client ~= glcd.clientid then
-    otherPlayers[v.client] = nil
+  else
+    otherPlayers[v] = nil
   end
 end
 
 function onPlayerState(v)
+  -- testing
+  print(inspect(v))
   if v.data == nil or v.client == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
@@ -40,9 +43,9 @@ end
 
 function updateZone(z)
   for _, zone in pairs(zones) do
-    --print("trying " .. z.data.data.zone .. " against " .. zone.name)
-    if zone.name == z.data.data.zone then
-      zone.data(z.data.data)
+    --print("trying " .. z.zone .. " against " .. zone.name)
+    if zone.name == z.zone then
+      zone.data(z)
     end
   end
 end

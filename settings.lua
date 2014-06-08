@@ -3,6 +3,7 @@ settings.nsq_http_api = "http://glcwalker.ohl:4151"
 settings.nsq_host = "glcwalker.ohl"
 settings.nsq_port = 4150
 settings.nsq_gamestate_topic = "glc-gamestate"
+settings.nsq_daemon_topic = "glc-daemon"
 
 settings.tile_height = 16
 settings.tile_width = 16

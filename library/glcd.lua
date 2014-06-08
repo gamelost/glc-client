@@ -25,7 +25,7 @@ glcd:start(clientid, glcdrecv)
 
 local n = NsqHttp:new()
 
-local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_gamestate_topic
+local fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_daemon_topic
 
 local lasthearbeat = love.timer.getTime()
 
@@ -37,7 +37,7 @@ local send = function(command, msg)
     data = msg
   }
   local j = json.encode(val)
-  print("NSQ: Sending '" .. command .. "': ", n:publish(settings.nsq_gamestate_topic, j))
+  print("NSQ: Sending '" .. command .. "': ", n:publish(settings.nsq_daemon_topic, j))
   lasthearbeat = love.timer.getTime()
 end
 
@@ -58,6 +58,22 @@ local poll = function()
   incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
+    -- todo: better way of doing this, kthxbai
+    if msg.updateZone and handlers["updateZone"] then
+      handlers["updateZone"](msg.updateZone)
+    end
+    if msg.playerState and handlers["playerState"] then
+      handlers["playerState"](msg.playerState)
+    end
+    if msg.playerGone and handlers["playerGone"] then
+      handlers["playerGone"](msg.playerGone)
+    end
+    -- todo: implement this
+    if msg.error and handlers["error"] then
+      handlers["error"](msg.error)
+    end
+
+    -- wall still uses this
     if handlers[msg.command] then
       handlers[msg.command](msg)
     end
