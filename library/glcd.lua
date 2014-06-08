@@ -60,7 +60,7 @@ function poll()
   -- heartbeat
   local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then
-    send('heartbeat', {"ba-dum"})
+    send('heartbeat', { beat = "ba-dum"})
   end
 
   -- Incoming
