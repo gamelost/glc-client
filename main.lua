@@ -1,5 +1,5 @@
 require "settings"
-require "lfs"
+require "library/fs"
 
 glcd = require("library/glcd")
 console = require("library/console")
@@ -32,17 +32,13 @@ function love.load()
 
   -- load player asset
   avatars = {}
-  for file in lfs.dir("assets/avatars") do
-    if lfs.attributes("assets/avatars/"..file,"mode") == "file" and string.sub(file, -4) == ".png" then
-      avatars[file] = love.graphics.newImage("assets/avatars/"..file)
-    end
-  end
+  traverse("assets/avatars", setAvatar)
   px = 0
   py = 0
-  avatarId = "ava1.png"
   -- default player speed
   pSpeed = 50 
-  
+  -- default player avatar
+  avatarId = "assets/avatars/ava1.png"
   -- get the middle of the screen
   poffsetx = - canvas:getWidth() / 2
   poffsety = - canvas:getHeight() / 2
@@ -129,20 +125,6 @@ function love.update(dt)
 
   end
 end
-
-function changeAvatar(id, avatars)
-  local keys = {}
-  local n    = 0
-  for k,v in pairs(table.sort(avatars)) do
-    n = n + 1
-    keys[n] = k
-  end
-end
-
-function hashPlayerName(name)
-  return #name % 8 + 1
-end
-
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
 
@@ -219,9 +201,25 @@ function love.draw()
   console.draw()
 end
 
+-- Avatar related functions
+function setAvatar(file)
+  if string.sub(file, -4) == ".png" then
+    avatars[file] = love.graphics.newImage(file)
+  end
+end
+
+function changeAvatar(id, avatars)
+  local keys = {}
+  local n    = 0
+  for k,v in pairs(table.sort(avatars)) do
+    n = n + 1
+    keys[n] = k
+  end
+end
+
 function drawAvatar(image, playerState, rpx, rpy)
   if image == nil then
-    image = avatars["ava1.png"]
+    image = avatars["assets/avatars/ava1.png"]
   end
   local frame = math.floor(love.timer.getTime() * 3) % 2
   local quad = love.graphics.newQuad(frame*16, 0, 16, 16, image:getWidth(), image:getHeight())
