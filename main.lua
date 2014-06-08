@@ -34,6 +34,7 @@ function love.load()
   p1 = love.graphics.newImage("assets/Player1.png")
   px = 0
   py = 0
+  avatarId = 1
   -- get the middle of the screen
   poffsetx = - canvas:getWidth() / 2
   poffsety = - canvas:getHeight() / 2
@@ -46,7 +47,7 @@ function love.load()
   -- generate a table of avatars from the first row of sprite image
   avatars = {}
   local quad_width, quad_height = p0:getWidth(), p0:getHeight()
-  for i=0,quad_width/16 do
+  for i=0,(quad_width/16)-1 do
     avatars[i+1] = love.graphics.newQuad(i*16, 0, 16, 16, quad_width, quad_height)
   end
 
@@ -78,7 +79,7 @@ function love.load()
   end
 
   glcd.send("connected")
-  glcd.send("playerState", {py=0, px=0})
+  glcd.send("playerState", {py=py, px=px, avatarId=avatarId})
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -113,9 +114,21 @@ function love.update(dt)
       px = px - speed
     end
 
-    glcd.send("playerState", {py=py, px=px})
+    if pressedKey.value == "v" then
+      avatarId = incrementAvatarId(avatarId, #avatars)
+    end
+
+    glcd.send("playerState", {py=py, px=px, avatarId=avatarId})
 
     pressedKey.dirtyKey = true
+  end
+end
+
+function incrementAvatarId(id, numberOfAvatars)
+  if id >= #avatars then
+    return 1
+  else
+    return id + 1
   end
 end
 
@@ -142,12 +155,15 @@ function love.draw()
       zone.update()
     end
     -- draw player
-    love.graphics.draw(p0, avatars[hashPlayerName(glcd.name)], 0, 0, 0, 1, 1, poffsetx, poffsety)
+    love.graphics.draw(p0, avatars[avatarId], 0, 0, 0, 1, 1, poffsetx, poffsety)
     -- draw other players
     for client, p in pairs(otherPlayers) do
       local rpx = math.floor(px - p.px)
       local rpy = math.floor(py - p.py)
-      love.graphics.draw(p1, avatars[hashPlayerName(client)], rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+      if p.avatarId == nil then
+        p.avatarId = 1
+      end
+      love.graphics.draw(p1, avatars[p.avatarId], rpx, rpy, 0, 1, 1, poffsetx, poffsety)
     end
     -- set target canvas back to screen and scale
     love.graphics.setCanvas()
