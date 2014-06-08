@@ -35,7 +35,7 @@ function onPlayerState(v)
     print("error: onplayerstate information was empty")
   else
     print(inspect(v))
-    otherPlayers[v.client] = v.data
+    otherPlayers[v.name] = v.data
   end
 end
 
