@@ -19,22 +19,22 @@ function chat(text)
 end
 
 function onPlayerGone(v)
-  if v.data == nil then
+  if v.data == nil or v.client == nil then
     -- error from the server? we shouldn't see this
-    print(v)
-  end
-  if v.data and v.data.client ~= glcd.clientid then
-    otherPlayers[v.data.client] = nil
+    print("error: onplayergone information was empty")
+  elseif v.data and v.client ~= glcd.clientid then
+    otherPlayers[v.client] = nil
   end
 end
 
 function onPlayerState(v)
-  if v.data == nil then
+  if v.data == nil or v.client == nil then
     -- error from the server? we shouldn't see this
-    print(v)
-  end
-  if v.data and v.data.client ~= glcd.clientid then
-    otherPlayers[v.data.client] = v.data
+    print("error: onplayerstate information was empty")
+  elseif v.data and v.client ~= glcd.clientid then
+    print(v.client)
+    print(glcd.clientid)
+    otherPlayers[v.client] = v.data
   end
 end
 

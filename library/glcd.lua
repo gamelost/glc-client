@@ -37,7 +37,7 @@ local send = function(command, msg)
     data = msg
   }
   local j = json.encode(val)
-  print("NSQ: Sending '" .. command .. "': ", n:publish("glcd-server", j))
+  print("NSQ: Sending '" .. command .. "': ", n:publish(settings.nsq_gamestate_topic, j))
   lasthearbeat = love.timer.getTime()
 end
 
@@ -51,9 +51,9 @@ local poll = function()
   -- heartbeat
   local elapsed = love.timer.getTime() - lasthearbeat
   if elapsed > 5.0 then
-    send('heartbeat', {})
+    send('heartbeat', {"foo"})
   end
-  
+
   -- Incoming
   incoming = glcdrecv:pop()
   while incoming do
