@@ -1,6 +1,8 @@
 require "settings"
 glcd = require "library/glcd"
 console = require("library/console")
+local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
+love.graphics.setFont(font)
 
 otherPlayers = {}
 
@@ -177,6 +179,23 @@ function love.draw()
     -- set target canvas back to screen and scale
     love.graphics.setCanvas()
     love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY)
+
+    -- Write name above avatar --
+    local MAX_WIDTH_OF_NAME = 200
+    local name_length = string.len(glcd.name) * 10
+    local background_offset = (width - name_length)/2
+    local name_offset = (width - MAX_WIDTH_OF_NAME)/2
+
+    -- Set background color to black and fill in background
+    love.graphics.setColor(16, 16, 16)
+    love.graphics.rectangle("fill", background_offset, height/2 - 16*scaleY, name_length, 18)
+
+    -- Set color of name to white and fill in name
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.printf(glcd.name, name_offset, height/2 - 16*scaleY, MAX_WIDTH_OF_NAME, "center")
+
+    -- Reset color back to white
+    love.graphics.setColor(255, 255, 255)
   end
 
   console.draw()
