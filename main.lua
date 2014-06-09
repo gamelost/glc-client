@@ -111,7 +111,6 @@ end
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
   if stateChanged then
-    print(inspect(myState))
     glcd.send("playerState", myState)
     stateChanged = false
   end
@@ -228,7 +227,6 @@ function drawText(rpx, rpy, str, r, g, b)
   love.graphics.printf(str, rx - str_offset - 2, ry + 2, MAX_WIDTH_OF_TEXT, "center")
 
   love.graphics.printf(str, rx - str_offset, ry - 2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset, ry, MAX_WIDTH_OF_TEXT, "center")
   love.graphics.printf(str, rx - str_offset, ry + 2, MAX_WIDTH_OF_TEXT, "center")
 
   love.graphics.printf(str, rx - str_offset + 2, ry - 2, MAX_WIDTH_OF_TEXT, "center")
