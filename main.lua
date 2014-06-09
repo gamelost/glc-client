@@ -114,7 +114,8 @@ end
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
   if stateChanged then
-    glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
+    glcd.send("playerState", myState)
+    stateChanged = false
   end
 end
 
@@ -170,10 +171,6 @@ function love.update(dt)
       avatarId = changeAvatar(avatarId, avatars)
       updateMyState({avatarId = avatarId})
     end
-  end
-  if stateChanged then
-    glcd.send("playerState", myState)
-    stateChanged = false
   end
 end
 
