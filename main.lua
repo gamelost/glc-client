@@ -12,6 +12,9 @@ function love.load()
 
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
+  updateFrequency = 10 -- times per second
+  updateFixedInterval = 1.0 / updateFrequency
+  timeAccum = 0.0
 
   -- set up the canvas
   canvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
@@ -36,7 +39,7 @@ function love.load()
   px = 0
   py = 0
   -- default player speed
-  pSpeed = 50 
+  pSpeed = 50
   -- default player avatar
   avatarId = "assets/avatars/ava1.png"
   -- get the middle of the screen
@@ -83,10 +86,24 @@ function love.load()
   glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState=avatarState})
 end
 
+-- runs a set amount (`updateFixedInterval`) per second.
+function love.fixed(dt)
+  glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
+end
+
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
   world:update(dt)
+
+  -- set a fixed interval so that we can update `updateFrequency`
+  -- times per second. TODO: this is probably not accurate for low fps
+  -- clients.
+  timeAccum = timeAccum + dt
+  if timeAccum > updateFixedInterval then
+    love.fixed(timeAccum)
+    timeAccum = timeAccum - updateFixedInterval
+  end
 
   glcd.poll()
   if splash then
@@ -103,7 +120,7 @@ function love.update(dt)
       py = 0
     end
 
-    local speed = pSpeed * dt 
+    local speed = pSpeed * dt
     if pressedKey.value == "up" then
       py = py + speed
     end
@@ -120,8 +137,6 @@ function love.update(dt)
     if pressedKey.value == "v" then
       avatarId = changeAvatar(avatarId, avatars)
     end
-
-    glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
 
   end
 end
@@ -237,7 +252,7 @@ end
 -- Keyboard key pressed.
 function love.keypressed(key)
   pressedKey.value = key
-  pressedKey.dirtyKey = false 
+  pressedKey.dirtyKey = false
 end
 
 -- Keyboard key released.
@@ -257,7 +272,7 @@ function love.keyreleased(key)
       keymode = "console"
     else
       pressedKey.value = key
-      pressedKey.dirtyKey = true 
+      pressedKey.dirtyKey = true
     end
   elseif keymode == "console" then
     if key == "tab" then
