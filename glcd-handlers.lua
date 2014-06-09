@@ -6,6 +6,8 @@ end
 
 function chat(text)
   glcd.send("wall", {message=text})
+  myPlayer.msg = text
+  myPlayer.msgtime = love.timer.getTime()
 end
 
 function onPlayerGone(v)
@@ -21,10 +23,12 @@ function onPlayerState(v)
   -- testing
   if v.ClientId == nil then
     -- error from the server? we shouldn't see this
-    print("errord: onplayerstate information was empty")
-    print("v:" .. inspect(v))
-  elseif v.ClientId ~= glcd.name then
-    otherPlayers[v.ClientId] = v
+    print("error: onplayerstate information was empty")
+  elseif v.name ~= glcd.name then
+    if otherPlayers[v.name] == nil then
+      otherPlayers[v.name] = {name=v.name}
+    end
+    otherPlayers[v.ClientId].state = v.data
   end
 end
 
