@@ -64,6 +64,8 @@ function love.load()
   pSpeed = 50
   -- default player avatar
   AvatarId = "assets/avatars/ava1.png"
+  AvatarState = 0
+
   -- get the middle of the screen
   poffsetx = - bgCanvas:getWidth() / 2
   poffsety = - bgCanvas:getHeight() / 2
@@ -105,7 +107,7 @@ function love.load()
   end
 
   glcd.send("connected")
-  updateMyState({Y=0, X=0, AvatarId="assets/avatars/ava1.png", AvatarState=0})
+  updateMyState({Y=0, X=0, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
@@ -138,36 +140,25 @@ function love.update(dt)
       glcd.send("chat", {Message="Player has entered the Game!"})
     end
   end
-  if pressedKey.value ~= nil and not pressedKey.dirtyKey then
-    --console.log("Button released:"..pressedKey.value)
-    if pressedKey.value == "0" then
-      px = 0
-      py = 0
-      updateMyState({Y = py, X = px})
-    end
-
-    local speed = pSpeed * dt
-    if pressedKey.value == "up" then
-      py = py + speed
-      updateMyState({Y = py})
-    end
-    if pressedKey.value == "down" then
-      py = py - speed
-      updateMyState({Y = py})
-    end
-    if pressedKey.value == "left" then
-      px = px + speed
-      updateMyState({X = px})
-    end
-    if pressedKey.value == "right" then
-      px = px - speed
-      updateMyState({X = px})
-    end
-
-    if pressedKey.value == "v" then
-      AvatarId = changeAvatar(AvatarId, avatars)
-      updateMyState({AvatarId = AvatarId})
-    end
+  local speed = pSpeed * dt
+  dx = 0
+  dy = 0
+  if love.keyboard.isDown("up") then
+    dy = dy + speed
+  end
+  if love.keyboard.isDown("down") then
+    dy = dy - speed
+  end
+  if love.keyboard.isDown("left") then
+    dx = dx + speed
+  end
+  if love.keyboard.isDown("right") then
+    dx = dx - speed
+  end
+  if dx ~= 0 or dy ~= 0 then
+    py = py + dy
+    px = px + dx
+    updateMyState({Y = py, X = px})
   end
 end
 
@@ -193,13 +184,14 @@ function love.draw()
     for _, zone in pairs(zones) do
       zone.update()
     end
-    -- draw player
-    drawPlayer(glcd.name, myPlayer)
 
     -- draw other players
     for name, p in pairs(otherPlayers) do
       drawPlayer(name, p)
     end
+
+    -- draw player
+    drawPlayer(glcd.name, myPlayer)
   end
 
   -- set target canvas back to screen and scale
@@ -255,8 +247,21 @@ function drawPlayer(name, player)
     image = defaultAvatar
   end
 
+  frameOffset = frame * 16
+  if frameOffset >= image:getWidth() then
+    frameOffset = 0
+  end
+
+  if p.AvatarState == nil then
+    p.AvatarState = 0
+  end
+  stateOffset = p.AvatarState * 16
+  if stateOffset >= image:getHeight() then
+    stateOffset = 0
+  end
+
   love.graphics.setCanvas(bgCanvas)
-  local quad = love.graphics.newQuad(frame*16, 0, 16, 16, image:getWidth(), image:getHeight())
+  local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
   love.graphics.draw(image, quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
 
   if p == myState then
@@ -274,7 +279,9 @@ end
 
 -- Avatar related functions
 function setAvatar(file)
+  print("setAvatar('" .. file .. "')")
   if string.sub(file, -4) == ".png" then
+    print(" ... loading")
     avatars[file] = love.graphics.newImage(file)
     if defaultAvatar == nil then
       defaultAvatar = avatars[file]
@@ -282,13 +289,25 @@ function setAvatar(file)
   end
 end
 
-function changeAvatar(id, avatars)
+function changeAvatar(id)
   local keys = {}
   local n    = 0
-  for k,v in pairs(table.sort(avatars)) do
+  local first = nil
+  local ret = false
+  for k, v in pairs(avatars) do
     n = n + 1
     keys[n] = k
+    if ret then
+      return k
+    end
+    if k == id then
+      ret = true
+    end
+    if not first then
+      first = k
+    end
   end
+  return first
 end
 
 -- Mouse pressed.
@@ -321,9 +340,15 @@ function love.keypressed(key)
     if key == "tab" then
       console.input.start()
       keymode = "console"
-    else
-      pressedKey.value = key
-      pressedKey.dirtyKey = false
+    elseif key == "v" then
+      AvatarId = changeAvatar(AvatarId)
+      updateMyState({AvatarId = AvatarId})
+    elseif key == "s" then
+      AvatarState = AvatarState + 1
+      if AvatarState > 2 then
+        AvatarState = 0
+      end
+      updateMyState({AvatarState = AvatarState})
     end
   elseif keymode == "console" then
     if key == "tab" then
