@@ -72,11 +72,12 @@ function poll()
     assert(#msg==0)
 
     -- todo: better way of doing this, kthxbai
-    if msg.updateZone and handlers["updateZone"] then
-      handlers["updateZone"](msg.updateZone)
+    if msg.Type=="updateZone" and handlers["updateZone"] then
+      handlers["updateZone"](msg.Data)
     end
-    if msg.playerState and handlers["playerState"] then
-      handlers["playerState"](msg.playerState)
+    if msg.Type=="playerState" and handlers["playerState"] then
+      console.log("receiv'd player state update")
+      handlers["playerState"](msg.Data)
     end
     if msg.playerGone and handlers["playerGone"] then
       handlers["playerGone"](msg.playerGone)

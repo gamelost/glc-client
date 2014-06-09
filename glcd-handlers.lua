@@ -1,3 +1,5 @@
+inspect = require("library/inspect")
+
 function onWall(v)
   console.log("WALL: " .. v.name .. ': ' .. v.data.message)
 end
@@ -17,11 +19,12 @@ end
 
 function onPlayerState(v)
   -- testing
-  if v.data == nil or v.client == nil then
+  if v.ClientId == nil then
     -- error from the server? we shouldn't see this
-    print("error: onplayerstate information was empty")
-  elseif v.name ~= glcd.name then
-    otherPlayers[v.name] = v.data
+    print("errord: onplayerstate information was empty")
+    print("v:" .. inspect(v))
+  elseif v.ClientId ~= glcd.name then
+    otherPlayers[v.ClientId] = v
   end
 end
 
