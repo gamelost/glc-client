@@ -36,14 +36,14 @@ end
 
 function send(command, msg)
   local val = {
-    client = fullclientid,
-    name = playername,
-    command = command,
-    data = msg
+    -- ClientId = fullclientid,
+    ClientId = playername,
+    Type = command,
+    Data = msg
   }
   local data = json.encode(val)
   local result = pub:publish(settings.nsq_daemon_topic, data)
-  print("NSQ: Sending '" .. command .. "': ", result)
+  print("NSQ: Sending '" .. data .. "': ", result)
   lastheartbeat = love.timer.getTime()
 end
 
