@@ -27,14 +27,10 @@ end
 function onPlayerState(v)
   -- testing
   local clientid = v.ClientId
-  print("onPlayerState:")
-  print(inspect(v))
   if clientid == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
   elseif clientid ~= glcd.name then
-    print("Setting player state for " .. glcd.name)
-    print(inspect(v))
     if otherPlayers[clientid] == nil then
       otherPlayers[clientid] = {name=clientid}
     end
@@ -43,7 +39,6 @@ function onPlayerState(v)
 end
 
 function updateZone(z)
-  print("z:" .. inspect(z))
   for _, zone in pairs(zones) do
     if zone.name == z.zone then
       zone.data(z)
