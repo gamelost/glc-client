@@ -1,8 +1,10 @@
 inspect = require("library/inspect")
 
-function onWall(v)
-  local clientid = v.ClientId
-  console.log("WALL: " .. clientid .. ': ' .. v.Message)
+function onChat(v)
+  if not v.Sender then
+    v.Sender = "ANNOUNCE"
+  end
+  console.log(v.Sender .. ': ' .. v.Message)
   if otherPlayers[clientid] then
     otherPlayers[clientid].msg = v.Message
     otherPlayers[clientid].msgtime = love.timer.getTime()
@@ -10,7 +12,7 @@ function onWall(v)
 end
 
 function chat(text)
-  glcd.send("wall", {Message=text})
+  glcd.send("chat", {Message=text, Sender = glcd.name})
   myPlayer.msg = text
   myPlayer.msgtime = love.timer.getTime()
 end
@@ -27,6 +29,8 @@ end
 function onPlayerState(v)
   -- testing
   local clientid = v.ClientId
+  print("PlayerState:")
+  print(inspect(v))
   if clientid == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
@@ -51,8 +55,8 @@ function onError(err)
 end
 
 return {
-  default=chat,
-  wall=onWall,
+  sendChat=chat,
+  chat=onChat,
   playerGone=onPlayerGone,
   playerState=onPlayerState,
   updateZone=updateZone,

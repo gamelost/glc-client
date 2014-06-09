@@ -83,14 +83,14 @@ function love.load()
   fs:start(wadq)
 
   -- add callback handlers to receive server notifications
-  glcd.addHandler("wall", handlers.wall)
+  glcd.addHandler("chat", handlers.chat)
   glcd.addHandler("error", handlers.error)
   glcd.addHandler("updateZone", handlers.updateZone)
   glcd.addHandler("playerGone", handlers.playerGone)
   glcd.addHandler("playerState", handlers.playerState)
 
   -- Add console handlers.
-  console.defaultHandler = chat
+  console.defaultHandler = handlers.sendChat
 
   -- initialize zones
   zones = {}
@@ -135,7 +135,7 @@ function love.update(dt)
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
-      glcd.send("wall", {Message="Player has entered the Game!"})
+      glcd.send("chat", {Message="Player has entered the Game!"})
     end
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
@@ -242,9 +242,7 @@ end
 
 function drawPlayer(name, player)
   local p = player.state
-  if not p then
-    print("Can't figure out state of player:")
-    print(inspect(player))
+  if not p or not p.X then
     return
   end
   local frame = math.floor(love.timer.getTime() * 3) % 2

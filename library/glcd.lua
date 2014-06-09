@@ -43,8 +43,7 @@ function send(command, msg)
   }
   local data = json.encode(val)
   local result = pub:publish(settings.nsq_daemon_topic, data)
-  print("NSQ: Sending '" .. data .. "': ", result)
-  lastheartbeat = love.timer.getTime()
+  print("NSQ: Sending '" .. command .. "': ", result)
 end
 
 function table.contains(table, element)
@@ -61,6 +60,7 @@ function poll()
   local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then
     send('heartbeat', { beat = "ba-dum"})
+    lastheartbeat = love.timer.getTime()
   end
 
   -- Incoming
@@ -71,25 +71,10 @@ function poll()
 
     assert(#msg==0)
 
-    -- todo: better way of doing this, kthxbai
-    if msg.Type=="updateZone" and handlers["updateZone"] then
-      handlers["updateZone"](msg.Data)
-    end
-    if msg.Type=="playerState" and handlers["playerState"] then
-      handlers["playerState"](msg.Data)
-    end
-    if msg.playerGone and handlers["playerGone"] then
-      handlers["playerGone"](msg.playerGone)
-    end
-    -- todo: implement this
-    if msg.error and handlers["error"] then
-      handlers["error"](msg.error)
+    if handlers[msg.Type] then
+      handlers[msg.Type](msg.Data, msg)
     end
 
-    -- wall still uses this
-    if handlers[msg.command] then
-      handlers[msg.command](msg)
-    end
     incoming = glcdrecv:pop()
   end
 end
