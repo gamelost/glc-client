@@ -29,8 +29,6 @@ end
 function onPlayerState(v)
   -- testing
   local clientid = v.ClientId
-  print("PlayerState:")
-  print(inspect(v))
   if clientid == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
