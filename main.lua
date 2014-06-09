@@ -5,14 +5,6 @@ glcd = require("library/glcd")
 console = require("library/console")
 handlers = require("glcd-handlers")
 
-myState = {}
-stateChanged = true
-
-myPlayer = {
-  state = myState,
-  name = glcd.name
-}
-
 function updateMyState(opts)
   for k, v in pairs(opts) do
     myState[k] = v
@@ -20,18 +12,18 @@ function updateMyState(opts)
   stateChanged = true
 end
 
-function showChat(v)
-  onWall(v)
-  if otherPlayers[v.name] then
-    otherPlayers[v.name].msg = v.data.message
-    otherPlayers[v.name].msgtime = love.timer.getTime()
-  end
-end
-
 -- Called only once when the game is started.
 function love.load()
   console.log("** starting game lost crash client")
   console.show()
+
+  myState = {}
+  stateChanged = true
+
+  myPlayer = {
+    state = myState,
+    name = glcd.name
+  }
 
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
@@ -87,7 +79,7 @@ function love.load()
   fs:start(wadq)
 
   -- add callback handlers to receive server notifications
-  glcd.addHandler("wall", showChat)
+  glcd.addHandler("wall", handlers.wall)
   glcd.addHandler("error", handlers.error)
   glcd.addHandler("updateZone", handlers.updateZone)
   glcd.addHandler("playerGone", handlers.playerGone)

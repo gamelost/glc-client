@@ -2,6 +2,10 @@ inspect = require("library/inspect")
 
 function onWall(v)
   console.log("WALL: " .. v.name .. ': ' .. v.data.message)
+  if otherPlayers[v.name] then
+    otherPlayers[v.name].msg = v.data.message
+    otherPlayers[v.name].msgtime = love.timer.getTime()
+  end
 end
 
 function chat(text)
