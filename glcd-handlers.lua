@@ -5,9 +5,9 @@ function onChat(v)
     v.Sender = "ANNOUNCE"
   end
   console.log(v.Sender .. ': ' .. v.Message)
-  if otherPlayers[clientid] then
-    otherPlayers[clientid].msg = v.Message
-    otherPlayers[clientid].msgtime = love.timer.getTime()
+  if otherPlayers[v.Sender] then
+    otherPlayers[v.Sender].msg = v.Message
+    otherPlayers[v.Sender].msgtime = love.timer.getTime()
   end
 end
 
