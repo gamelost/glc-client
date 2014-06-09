@@ -13,7 +13,7 @@ Zone.key_released = stub
 Zone.mouse_pressed = stub
 Zone.mouse_released = stub
 
-function load_wad(wad)
+function load_wad(data, wad)
   local code = {}
   local assets = {}
   for line in love.filesystem.lines(wad) do
@@ -23,7 +23,7 @@ function load_wad(wad)
       -- we need to distinguish between other file types and also add
       -- error checking here
       if ext == "lua" then
-        local env = setmetatable({}, {__index=_G})
+        local env = setmetatable({}, {__index=data})
         local mod = assert(loadfile(path))
         assert(pcall(setfenv(mod, env)))
         table.insert(code, env)
@@ -39,9 +39,11 @@ end
 function Zone.new(wad)
   local self = setmetatable({}, Zone)
   self.__index = self
+  self.require = require
+  self.print = print -- better way to do this?
   self.state = {}
   self.name = wad
-  self.assets, self.code = load_wad(wad)
+  self.assets, self.code = load_wad(self ,wad)
 
   -- set up overrides
   for _, mod in pairs(self.code) do

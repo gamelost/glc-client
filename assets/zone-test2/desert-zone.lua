@@ -1,10 +1,9 @@
-require("library/tileset")
-state = {}
-
 function init()
   print("initializing desert-zone")
   -- TODO: should be self.assets[...]
   tileset = require("assets/zone-test2/desert-caverns")
+  glc_tileset = require("library/tileset")
+  inspect = require("library/inspect")
   state.tileset = glc_tileset.load_tiles(tileset)
 end
 

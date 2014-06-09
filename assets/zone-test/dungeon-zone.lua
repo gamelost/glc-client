@@ -1,12 +1,11 @@
-require("library/tileset")
-state = {}
-
 function init()
   print("initializing dungeon-zone")
   -- -- TODO: should be self.assets[...]
-  --tileset2 = require("assets/zone-test/Dungeon_sans_npcs")
-  tileset2 = require("assets/zone-test/farmer-map")
-  state.tileset = glc_tileset.load_tiles(tileset2)
+  --tileset = require("assets/zone-test/Dungeon_sans_npcs")
+  glc_tileset = require("library/tileset")
+  tileset = require("assets/zone-test/farmer-map")
+  inspect = require("library/inspect")
+  state.tileset = glc_tileset.load_tiles(tileset)
 end
 
 function update()
