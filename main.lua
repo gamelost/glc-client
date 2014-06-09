@@ -301,9 +301,10 @@ function love.mousereleased(x, y, button)
 end
 
 -- Keyboard key pressed.
-function love.keypressed(key)
-  pressedKey.value = key
-  pressedKey.dirtyKey = false
+function love.keyreleased(key)
+  if pressedKey.value == key then
+    pressedKey = {value = nil, dirtyKey = false}
+  end
 end
 
 -- Keyboard key released.
@@ -313,7 +314,7 @@ function love.textinput(text)
   end
 end
 
-function love.keyreleased(key)
+function love.keypressed(key)
   if key == "escape" then
     love.event.quit()
   end
@@ -323,7 +324,7 @@ function love.keyreleased(key)
       keymode = "console"
     else
       pressedKey.value = key
-      pressedKey.dirtyKey = true
+      pressedKey.dirtyKey = false
     end
   elseif keymode == "console" then
     if key == "tab" then
