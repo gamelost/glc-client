@@ -35,6 +35,7 @@ settings.tiles_per_column = 12
 settings.zone_height = 25
 settings.zone_width = 25
 settings.assets_dir = "assets"
+settings.show_metadata_layer = false
 
 -- currently only works in the ohl office
 settings.attempt_mount = false

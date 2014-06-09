@@ -102,7 +102,9 @@ function love.load()
     table.insert(zones, zone.new(wad))
     console.log("loaded zone from " .. wad)
   end
-  for _, zone in pairs(zones) do
+
+  for k, zone in pairs(zones) do
+    print(string.format("zone[%d]: %s", k, inspect(zone.name)))
     zone.init()
   end
 
@@ -116,6 +118,54 @@ function love.fixed(dt)
     glcd.send("playerState", myState)
     stateChanged = false
   end
+end
+
+-- Get current zone.
+--  wx - number: World x-coordinate.
+--  wy - number: World y-coordinate.
+--  return - zone offset number, its transformed coordinates, and the selected zone object itself.
+function getZoneOffset(wx, wy)
+  local zpoint = nil
+  local zIndex = nil
+  local mZone = nil
+  local xOffset = 0 
+
+-- Assume 1-D horizontal zones for now.
+--  for _, zone in pairs(zones) do
+  for idx = 1, #zones do
+    local zId = zones[idx].state.data.id
+    -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
+    local zoneWidth = 25 * 16 -- hardcode for now until the server passes the sorted zones table from left to right
+    local wxMin = -1 * zId *  zoneWidth
+    local wxMax = wxMin - zoneWidth
+    print(string.format("getZoneOffset: idx=%d, wx=%d, zId=%d, zoneWidth=%d, wxMin=%d, wxMax=%d", idx, wx, zId, zoneWidth, wxMin, wxMax))
+
+    if wx <= wxMin and wx >= wxMax then
+      print("getZoneOffset: Found! zId=", zId)
+      zpoint = {x = zId * wx, y = wy}
+      zIndex = idx;
+      mZone = zone
+      break
+    else
+      print("getZoneOffset: Not found! zId=", zId)
+      xOffset = xOffset + zoneWidth
+    end
+
+    idx = idx + 1
+  end
+
+  return zIndex, zpoint, mZone
+end
+
+function hasCollison(x, y)
+  for k, v in ipairs(state.tileset) do
+    print("k, v", k, v)
+    for k2, v2 in pairs(states) do
+      print("k2, v2:", k2, v2)
+    end
+  end
+
+  return false
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -140,6 +190,7 @@ function love.update(dt)
       glcd.send("chat", {Message="Player has entered the Game!"})
     end
   end
+
   local speed = pSpeed * dt
   dx = 0
   dy = 0
@@ -155,9 +206,11 @@ function love.update(dt)
   if love.keyboard.isDown("right") then
     dx = dx - speed
   end
+
   if dx ~= 0 or dy ~= 0 then
     py = py + dy
     px = px + dx
+    local currZoneId, currZoneCoords, currZone  = getZoneOffset(px, py)
     updateMyState({Y = py, X = px})
   end
 end
