@@ -39,7 +39,6 @@ function onPlayerState(v)
 end
 
 function updateZone(z)
-  print("z:" .. inspect(z))
   for _, zone in pairs(zones) do
     if zone.name == z.zone then
       zone.data(z)
