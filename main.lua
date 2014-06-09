@@ -4,6 +4,7 @@ require "library/fs"
 glcd = require("library/glcd")
 console = require("library/console")
 handlers = require("glcd-handlers")
+inspect = require("library/inspect")
 
 function updateMyState(opts)
   for k, v in pairs(opts) do
@@ -101,7 +102,7 @@ function love.load()
   end
 
   glcd.send("connected")
-  updateMyState({py=0, px=0, avatarId="assets/avatars/ava1.png", avatarState=0})
+  updateMyState({Y=0, X=0, avatarId="assets/avatars/ava1.png", avatarState=0})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
@@ -131,7 +132,7 @@ function love.update(dt)
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
-      glcd.send("wall", {message="Player has entered the Game!"})
+      glcd.send("wall", {Message="Player has entered the Game!"})
     end
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
@@ -139,25 +140,25 @@ function love.update(dt)
     if pressedKey.value == "0" then
       px = 0
       py = 0
-      updateMyState({py = py, px = px})
+      updateMyState({Y = py, X = px})
     end
 
     local speed = pSpeed * dt
     if pressedKey.value == "up" then
       py = py + speed
-      updateMyState({py = py})
+      updateMyState({Y = py})
     end
     if pressedKey.value == "down" then
       py = py - speed
-      updateMyState({py = py})
+      updateMyState({Y = py})
     end
     if pressedKey.value == "left" then
       px = px + speed
-      updateMyState({px = px})
+      updateMyState({X = px})
     end
     if pressedKey.value == "right" then
       px = px - speed
-      updateMyState({px = px})
+      updateMyState({X = px})
     end
 
     if pressedKey.value == "v" then
@@ -239,6 +240,11 @@ end
 
 function drawPlayer(name, player)
   local p = player.state
+  if not p then
+    print("Can't figure out state of player:")
+    print(inspect(player))
+    return
+  end
   local frame = math.floor(love.timer.getTime() * 3) % 2
   local rpx = math.floor(px - p.X)
   local rpy = math.floor(py - p.Y)
