@@ -10,6 +10,7 @@ function love.load()
   console.log("** starting game lost crash client")
   console.show()
 
+  player = {}
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
   updateFrequency = 10 -- times per second
@@ -88,7 +89,10 @@ end
 
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
-  glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
+  if player.moved then
+    glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
+  end
+  player.moved = false
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -116,21 +120,26 @@ function love.update(dt)
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
     --console.log("Button released:"..pressedKey.value)
     if pressedKey.value == "0" then
+      player.moved = true
       px = 0
       py = 0
     end
 
     local speed = pSpeed * dt
     if pressedKey.value == "up" then
+      player.moved = true
       py = py + speed
     end
     if pressedKey.value == "down" then
+      player.moved = true
       py = py - speed
     end
     if pressedKey.value == "left" then
+      player.moved = true
       px = px + speed
     end
     if pressedKey.value == "right" then
+      player.moved = true
       px = px - speed
     end
 

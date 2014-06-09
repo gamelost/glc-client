@@ -67,9 +67,8 @@ function poll()
   incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
-    print("incoming: " .. inspect(msg))
+    --print("incoming: " .. inspect(msg))
 
-    print(msg[0])
     assert(#msg==0)
 
     -- todo: better way of doing this, kthxbai
