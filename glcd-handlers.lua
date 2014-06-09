@@ -2,9 +2,9 @@ inspect = require("library/inspect")
 
 function onWall(v)
   local clientid = v.ClientId
-  console.log("WALL: " .. clientid .. ': ' .. v.message)
+  console.log("WALL: " .. clientid .. ': ' .. v.Message)
   if otherPlayers[clientid] then
-    otherPlayers[clientid].msg = v.message
+    otherPlayers[clientid].msg = v.Message
     otherPlayers[clientid].msgtime = love.timer.getTime()
   end
 end
