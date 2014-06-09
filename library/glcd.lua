@@ -76,7 +76,6 @@ function poll()
       handlers["updateZone"](msg.Data)
     end
     if msg.Type=="playerState" and handlers["playerState"] then
-      console.log("receiv'd player state update")
       handlers["playerState"](msg.Data)
     end
     if msg.playerGone and handlers["playerGone"] then
