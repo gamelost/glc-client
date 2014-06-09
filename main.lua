@@ -172,8 +172,8 @@ function love.draw()
     drawAvatar(avatars[avatarId], nil, 0, 0)
     -- draw other players
     for client, p in pairs(otherPlayers) do
-      local rpx = math.floor(px - p.px)
-      local rpy = math.floor(py - p.py)
+      local rpx = math.floor(px - p.X)
+      local rpy = math.floor(py - p.Y)
       if p.avatarId == nil then
         p.avatarId = 1
       end
@@ -187,8 +187,8 @@ function love.draw()
     local MAX_WIDTH_OF_NAME = 200
     for client, p in pairs(otherPlayers) do
       if client ~= glcd.name then
-        local rpx = math.floor(px - p.px)
-        local rpy = math.floor(py - p.py)
+        local rpx = math.floor(px - p.X)
+        local rpy = math.floor(py - p.Y)
 
         local name_length = string.len(client) * 10
         local background_offset = name_length / 2
