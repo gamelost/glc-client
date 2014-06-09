@@ -1,6 +1,6 @@
 require "library/nsq"
 require "os"
-require "settings"
+require "conf"
 require "json"
 inspect = require("library/inspect")
 
