@@ -27,10 +27,14 @@ end
 function onPlayerState(v)
   -- testing
   local clientid = v.ClientId
+  print("onPlayerState:")
+  print(inspect(v))
   if clientid == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
   elseif clientid ~= glcd.name then
+    print("Setting player state for " .. glcd.name)
+    print(inspect(v))
     if otherPlayers[clientid] == nil then
       otherPlayers[clientid] = {name=clientid}
     end

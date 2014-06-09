@@ -10,6 +10,7 @@ function updateMyState(opts)
   for k, v in pairs(opts) do
     myState[k] = v
   end
+  myPlayer.state = myState
   stateChanged = true
 end
 
@@ -25,6 +26,8 @@ function love.load()
     state = myState,
     name = glcd.name
   }
+
+  defaultAvatar = nil
 
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
@@ -60,7 +63,7 @@ function love.load()
   -- default player speed
   pSpeed = 50
   -- default player avatar
-  avatarId = "assets/avatars/ava1.png"
+  AvatarId = "assets/avatars/ava1.png"
   -- get the middle of the screen
   poffsetx = - bgCanvas:getWidth() / 2
   poffsety = - bgCanvas:getHeight() / 2
@@ -102,12 +105,13 @@ function love.load()
   end
 
   glcd.send("connected")
-  updateMyState({Y=0, X=0, avatarId="assets/avatars/ava1.png", avatarState=0})
+  updateMyState({Y=0, X=0, AvatarId="assets/avatars/ava1.png", AvatarState=0})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
   if stateChanged then
+    print(inspect(myState))
     glcd.send("playerState", myState)
     stateChanged = false
   end
@@ -162,8 +166,8 @@ function love.update(dt)
     end
 
     if pressedKey.value == "v" then
-      avatarId = changeAvatar(avatarId, avatars)
-      updateMyState({avatarId = avatarId})
+      AvatarId = changeAvatar(AvatarId, avatars)
+      updateMyState({AvatarId = AvatarId})
     end
   end
 end
@@ -250,9 +254,9 @@ function drawPlayer(name, player)
   local rpy = math.floor(py - p.Y)
 
   -- Draw Avatar
-  image = avatars[p.avatarId]
+  image = avatars[p.AvatarId]
   if image == nil then
-    image = avatars["assets/avatars/ava1.png"]
+    image = defaultAvatar
   end
 
   love.graphics.setCanvas(bgCanvas)
@@ -276,6 +280,9 @@ end
 function setAvatar(file)
   if string.sub(file, -4) == ".png" then
     avatars[file] = love.graphics.newImage(file)
+    if defaultAvatar == nil then
+      defaultAvatar = avatars[file]
+    end
   end
 end
 
