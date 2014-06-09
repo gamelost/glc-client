@@ -2,6 +2,7 @@ require "library/nsq"
 require "os"
 require "settings"
 require "json"
+inspect = require("library/inspect")
 
 local clientid, recv = ...
 
@@ -16,6 +17,7 @@ local handler = function(job)
   --     "got job %s with %d attempts and body %s",
   --     job.id, job.attempts, job.body
   --     ))
+  print("job: " .. inspect(job))
   recv:push(job.body)
   return true
 end

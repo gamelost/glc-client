@@ -4,13 +4,28 @@ require "library/fs"
 glcd = require("library/glcd")
 console = require("library/console")
 handlers = require("glcd-handlers")
+inspect = require("library/inspect")
+
+function updateMyState(opts)
+  for k, v in pairs(opts) do
+    myState[k] = v
+  end
+  stateChanged = true
+end
 
 -- Called only once when the game is started.
 function love.load()
   console.log("** starting game lost crash client")
   console.show()
 
-  player = {}
+  myState = {}
+  stateChanged = true
+
+  myPlayer = {
+    state = myState,
+    name = glcd.name
+  }
+
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
   updateFrequency = 10 -- times per second
@@ -18,10 +33,13 @@ function love.load()
   timeAccum = 0.0
 
   -- set up the canvas
-  canvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
+  bgCanvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
                                    settings.tiles_per_column * settings.tile_height)
-  canvas:setFilter("nearest", "nearest") -- linear interpolation
-  scaleX, scaleY = win.width / canvas:getWidth(), win.height / canvas:getHeight()
+  bgCanvas:setFilter("nearest", "nearest") -- linear interpolation
+  scaleX, scaleY = win.width / bgCanvas:getWidth(), win.height / bgCanvas:getHeight()
+
+  textCanvas = love.graphics.newCanvas(win.width, win.height)
+  textCanvas:setFilter("nearest", "nearest") -- linear interpolation
 
   -- set up the font
   local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
@@ -44,8 +62,8 @@ function love.load()
   -- default player avatar
   avatarId = "assets/avatars/ava1.png"
   -- get the middle of the screen
-  poffsetx = - canvas:getWidth() / 2
-  poffsety = - canvas:getHeight() / 2
+  poffsetx = - bgCanvas:getWidth() / 2
+  poffsety = - bgCanvas:getHeight() / 2
   -- adjust for the middle of the sprite itself
   poffsetx = poffsetx + 8
   poffsety = poffsety + 8
@@ -84,15 +102,15 @@ function love.load()
   end
 
   glcd.send("connected")
-  glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState=avatarState})
+  updateMyState({Y=0, X=0, avatarId="assets/avatars/ava1.png", avatarState=0})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
-  if player.moved then
-    glcd.send("playerState", {py=py, px=px, avatarId=avatarId, avatarState, avatarState})
+  if stateChanged then
+    glcd.send("playerState", myState)
+    stateChanged = false
   end
-  player.moved = false
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -114,41 +132,42 @@ function love.update(dt)
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
-      glcd.send("wall", {message="Player has entered the Game!"})
+      glcd.send("wall", {Message="Player has entered the Game!"})
     end
   end
   if pressedKey.value ~= nil and not pressedKey.dirtyKey then
     --console.log("Button released:"..pressedKey.value)
     if pressedKey.value == "0" then
-      player.moved = true
       px = 0
       py = 0
+      updateMyState({Y = py, X = px})
     end
 
     local speed = pSpeed * dt
     if pressedKey.value == "up" then
-      player.moved = true
       py = py + speed
+      updateMyState({Y = py})
     end
     if pressedKey.value == "down" then
-      player.moved = true
       py = py - speed
+      updateMyState({Y = py})
     end
     if pressedKey.value == "left" then
-      player.moved = true
       px = px + speed
+      updateMyState({X = px})
     end
     if pressedKey.value == "right" then
-      player.moved = true
       px = px - speed
+      updateMyState({X = px})
     end
 
     if pressedKey.value == "v" then
       avatarId = changeAvatar(avatarId, avatars)
+      updateMyState({avatarId = avatarId})
     end
-
   end
 end
+
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
 
@@ -159,8 +178,11 @@ function love.draw()
     love.graphics.draw(glc, x, y)
     love.graphics.setBackgroundColor(0x62, 0x36, 0xb3)
   else
-    canvas:clear(0x62, 0x36, 0xb3)
-    love.graphics.setCanvas(canvas) -- draw to this canvas
+    -- Clear canvases.
+    bgCanvas:clear(0x62, 0x36, 0xb3)
+    textCanvas:clear(0, 0, 0, 0)
+
+    love.graphics.setCanvas(bgCanvas) -- draw to this canvas
     -- draw zones
     if #zones == 0 then
       console.log("No zones found.")
@@ -169,60 +191,85 @@ function love.draw()
       zone.update()
     end
     -- draw player
-    drawAvatar(avatars[avatarId], nil, 0, 0)
+    drawPlayer(glcd.name, myPlayer)
+
     -- draw other players
-    for client, p in pairs(otherPlayers) do
-      local rpx = math.floor(px - p.X)
-      local rpy = math.floor(py - p.Y)
-      if p.avatarId == nil then
-        p.avatarId = 1
-      end
-      drawAvatar(avatars[p.avatarId], nil, rpx, rpy)
+    for name, p in pairs(otherPlayers) do
+      drawPlayer(name, p)
     end
-    -- set target canvas back to screen and scale
-    love.graphics.setCanvas()
-    love.graphics.draw(canvas, 0, 0, 0, scaleX, scaleY)
-
-    -- Write name above avatar --
-    local MAX_WIDTH_OF_NAME = 200
-    for client, p in pairs(otherPlayers) do
-      if client ~= glcd.name then
-        local rpx = math.floor(px - p.X)
-        local rpy = math.floor(py - p.Y)
-
-        local name_length = string.len(client) * 10
-        local background_offset = name_length / 2
-        local name_offset = MAX_WIDTH_OF_NAME / 2
-
-        love.graphics.setColor(0, 0, 0, 128)
-        love.graphics.rectangle("fill", width/2-background_offset+rpx*scaleX, height/2-60+rpy*scaleY, name_length, 18)
-
-        -- Set color of name to white and fill in name
-        love.graphics.setColor(0, 255, 128)
-        love.graphics.printf(client, width/2-name_offset+rpx*scaleX, height/2-60+rpy*scaleY, MAX_WIDTH_OF_NAME, "center")
-
-        -- Reset color back to white
-        love.graphics.setColor(255, 255, 255)
-      end
-    end
-
-    local name_length = string.len(glcd.name) * 10
-    local background_offset = (width - name_length)/2
-    local name_offset = (width - MAX_WIDTH_OF_NAME)/2
-
-    -- Set background color to black and fill in background
-    love.graphics.setColor(0, 0, 0, 128)
-    love.graphics.rectangle("fill", background_offset, height/2 - 16*scaleY, name_length, 18)
-
-    -- Set color of name to white and fill in name
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.printf(glcd.name, name_offset, height/2 - 16*scaleY, MAX_WIDTH_OF_NAME, "center")
-
-    -- Reset color back to white
-    love.graphics.setColor(255, 255, 255)
   end
 
+  -- set target canvas back to screen and scale
+  love.graphics.setCanvas()
+  love.graphics.draw(bgCanvas, 0, 0, 0, scaleX, scaleY)
+  love.graphics.draw(textCanvas, 0, 0, 0, 1, 1)
+
   console.draw()
+end
+
+function drawText(rpx, rpy, str, r, g, b)
+  -- Draw Name
+  local MAX_WIDTH_OF_TEXT = 200
+  local str_length = string.len(str) * 10
+  local background_offset = str_length / 2
+  local str_offset = MAX_WIDTH_OF_TEXT / 2
+
+  local rx = (width / 2) + (rpx * scaleX)
+  local ry = (height / 2) + (rpy * scaleY)
+
+  love.graphics.setCanvas(textCanvas)
+  love.graphics.setColor(0, 0, 0, 255)
+  love.graphics.printf(str, rx - str_offset - 2, ry - 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset - 2, ry, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset - 2, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+
+  love.graphics.printf(str, rx - str_offset, ry - 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset, ry, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+
+  love.graphics.printf(str, rx - str_offset + 2, ry - 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset + 2, ry, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, rx - str_offset + 2, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+
+  -- Set color of text and fill in.
+  love.graphics.setColor(r, g, b)
+  love.graphics.printf(str, rx - str_offset, ry, MAX_WIDTH_OF_TEXT, "center")
+
+  love.graphics.setColor(255, 255, 255)
+end
+
+function drawPlayer(name, player)
+  local p = player.state
+  if not p then
+    print("Can't figure out state of player:")
+    print(inspect(player))
+    return
+  end
+  local frame = math.floor(love.timer.getTime() * 3) % 2
+  local rpx = math.floor(px - p.X)
+  local rpy = math.floor(py - p.Y)
+
+  -- Draw Avatar
+  image = avatars[p.avatarId]
+  if image == nil then
+    image = avatars["assets/avatars/ava1.png"]
+  end
+
+  love.graphics.setCanvas(bgCanvas)
+  local quad = love.graphics.newQuad(frame*16, 0, 16, 16, image:getWidth(), image:getHeight())
+  love.graphics.draw(image, quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+
+  if p == myState then
+    drawText(rpx, rpy - 12, name, 255, 255, 255)
+  else
+    drawText(rpx, rpy - 12, name, 0, 255, 128)
+  end
+
+  -- Text shows for 5 seconds.
+  local exp = love.timer.getTime() - 3
+  if player.msg and player.msgtime > exp then
+    drawText(rpx, rpy - 25, player.msg, 0, 255, 255)
+  end
 end
 
 -- Avatar related functions
@@ -241,15 +288,6 @@ function changeAvatar(id, avatars)
   end
 end
 
-function drawAvatar(image, playerState, rpx, rpy)
-  if image == nil then
-    image = avatars["assets/avatars/ava1.png"]
-  end
-  local frame = math.floor(love.timer.getTime() * 3) % 2
-  local quad = love.graphics.newQuad(frame*16, 0, 16, 16, image:getWidth(), image:getHeight())
-  love.graphics.draw(image, quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
-end
-
 -- Mouse pressed.
 function love.mousepressed(x, y, button)
 end
@@ -259,9 +297,10 @@ function love.mousereleased(x, y, button)
 end
 
 -- Keyboard key pressed.
-function love.keypressed(key)
-  pressedKey.value = key
-  pressedKey.dirtyKey = false
+function love.keyreleased(key)
+  if pressedKey.value == key then
+    pressedKey = {value = nil, dirtyKey = false}
+  end
 end
 
 -- Keyboard key released.
@@ -271,7 +310,7 @@ function love.textinput(text)
   end
 end
 
-function love.keyreleased(key)
+function love.keypressed(key)
   if key == "escape" then
     love.event.quit()
   end
@@ -281,7 +320,7 @@ function love.keyreleased(key)
       keymode = "console"
     else
       pressedKey.value = key
-      pressedKey.dirtyKey = true
+      pressedKey.dirtyKey = false
     end
   elseif keymode == "console" then
     if key == "tab" then
