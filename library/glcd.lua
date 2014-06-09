@@ -1,7 +1,7 @@
 require "library/nsq"
-require "settings"
 require "socket"
 require "json"
+require "conf"
 
 underscore = require("library/underscore")
 inspect = require("library/inspect")

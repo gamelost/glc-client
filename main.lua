@@ -1,4 +1,4 @@
-require "settings"
+require "conf"
 require "library/fs"
 
 glcd = require("library/glcd")

@@ -1,5 +1,5 @@
 require "love.filesystem"
-require "settings"
+require "conf"
 
 current = {}
 wads = {}
