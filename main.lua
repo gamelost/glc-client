@@ -17,6 +17,7 @@ function updateMyState(opts)
   for k, v in pairs(opts) do
     myState[k] = v
   end
+  stateChanged = true
 end
 
 function showChat(v)
