@@ -99,7 +99,7 @@ local function draw_tiles(tilesets, id)
           local tileheight = tile_data.tileheight
           local x = layer.x + (posx * tile_data.tilewidth)
           local y = layer.y + (posy * tile_data.tileheight)
-          love.graphics.draw(tile_data.tileset, tile_data.quads[v], zone_offset + math.floor(x + px), math.floor(y + py))
+          love.graphics.draw(tile_data.tileset, tile_data.quads[v], zone_offset + math.floor(x + px + vpoffsetx), math.floor(y + py + vpoffsety))
         end
         posx = posx + 1
       end

@@ -67,11 +67,11 @@ function love.load()
   AvatarState = 0
 
   -- get the middle of the screen
-  poffsetx = - bgCanvas:getWidth() / 2
-  poffsety = - bgCanvas:getHeight() / 2
-  -- adjust for the middle of the sprite itself
-  poffsetx = poffsetx + 8
-  poffsety = poffsety + 8
+  vpoffsetx = bgCanvas:getWidth() / 2
+  vpoffsety = bgCanvas:getHeight() / 2
+
+  vpx = -vpoffsetx
+  vpy = -vpoffsety
   -- initialize other player data
   otherPlayers = {}
 
@@ -262,8 +262,11 @@ function drawText(rpx, rpy, str, r, g, b)
   local background_offset = str_length / 2
   local str_offset = MAX_WIDTH_OF_TEXT / 2
 
-  local rx = (width / 2) + (rpx * scaleX)
-  local ry = (height / 2) + (rpy * scaleY)
+  rpx = rpx + vpoffsetx
+  rpy = rpy + vpoffsety
+
+  local rx = rpx * scaleX
+  local ry = rpy * scaleY
 
   love.graphics.setCanvas(textCanvas)
   love.graphics.setColor(0, 0, 0, 255)
@@ -315,7 +318,10 @@ function drawPlayer(name, player)
 
   love.graphics.setCanvas(bgCanvas)
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
-  love.graphics.draw(image, quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+
+  local lpx = rpx + vpoffsetx
+  local lpy = rpy + vpoffsety
+  love.graphics.draw(image, quad, lpx, lpy, 0, 1, 1, 8, 8)
 
   if p == myState then
     drawText(rpx, rpy - 12, name, 255, 255, 255)
