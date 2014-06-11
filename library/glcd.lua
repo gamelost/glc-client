@@ -1,33 +1,32 @@
-require "library/nsq"
-require "socket"
-require "json"
-require "conf"
+require("socket")
+require("library/json")
+require("conf")
 
-underscore = require("library/underscore")
-inspect = require("library/inspect")
-nsq = require("library/nsqc")
+local underscore = require("library/underscore")
+local inspect = require("library/inspect")
 
 -- generate users' client ID
-s = socket.udp()
+local s = socket.udp()
 s:setpeername("8.8.8.8", 51)
-ip, _ = s:getsockname()
-playername = os.getenv("USER")
-clientid = ip .. "-" .. playername
-fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_daemon_topic
+local ip, _ = s:getsockname()
+local playername = os.getenv("USER")
+local clientid = ip .. "-" .. playername
 
 -- poll glcd (the server)
-glcd = love.thread.newThread("scripts/poll-glcd.lua")
-glcdrecv = love.thread.newChannel()
-glcd:start(clientid:sub(1,30), glcdrecv)
+local pollthread = love.thread.newThread("scripts/poll-glcd.lua")
+local glcdrecv = love.thread.newChannel()
+pollthread:start(clientid:sub(1,30), glcdrecv)
 
--- nsq publishing connection
-pub = NsqHttp:new()
+-- Send messages (since network hangs main love thread)
+local sendthread = love.thread.newThread("scripts/send-glcd.lua")
+local glcdsend = love.thread.newChannel()
+sendthread:start(settings.nsq_daemon_topic, glcdsend)
 
 -- heartbeat
-lastheartbeat = love.timer.getTime()
+local lastheartbeat = love.timer.getTime()
 
 -- handlers
-handlers = {}
+local handlers = {}
 
 function addHandler(command, handler)
   assert(handler ~= nil)
@@ -36,14 +35,12 @@ end
 
 function send(command, msg)
   local val = {
-    -- ClientId = fullclientid,
     ClientId = playername,
     Type = command,
     Data = msg
   }
   local data = json.encode(val)
-  local result = pub:publish(settings.nsq_daemon_topic, data)
-  print("NSQ: Sending '" .. command .. "': ", result)
+  glcdsend:push(data)
 end
 
 function table.contains(table, element)
@@ -64,7 +61,7 @@ function poll()
   end
 
   -- Incoming
-  incoming = glcdrecv:pop()
+  local incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
     --print("incoming: " .. inspect(msg))
@@ -83,6 +80,6 @@ return {
   send = send,
   poll = poll,
   addHandler = addHandler,
-  clientid = fullclientid,
+  clientid = clientid,
   name = playername
 }
