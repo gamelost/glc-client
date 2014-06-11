@@ -19,7 +19,9 @@ function love.load()
   console.log("** starting game lost crash client")
   console.show()
 
-  myState = {}
+  myState = {
+    Name = glcd.name
+  }
   stateChanged = true
 
   myPlayer = {

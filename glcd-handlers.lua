@@ -1,4 +1,4 @@
-inspect = require("library/inspect")
+local inspect = require("library/inspect")
 
 function onChat(v)
   if not v.Sender then
@@ -32,9 +32,12 @@ function onPlayerState(v)
   if clientid == nil then
     -- error from the server? we shouldn't see this
     print("error: onplayerstate information was empty")
-  elseif clientid ~= glcd.name then
+  elseif clientid ~= glcd.clientid then
     if otherPlayers[clientid] == nil then
       otherPlayers[clientid] = {name=clientid}
+      if v.Name then
+        otherPlayers[clientid].name = v.Name
+      end
     end
     otherPlayers[clientid].state = v
   end
