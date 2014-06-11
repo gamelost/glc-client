@@ -308,12 +308,12 @@ function drawPlayer(name, player)
   local rpy = math.floor(py - p.Y)
 
   -- Draw Avatar
-  image = avatars[p.AvatarId]
+  local image = avatars[p.AvatarId]
   if image == nil then
     image = defaultAvatar
   end
 
-  frameOffset = frame * 16
+  local frameOffset = frame * 16
   if frameOffset >= image:getWidth() then
     frameOffset = 0
   end
@@ -321,7 +321,7 @@ function drawPlayer(name, player)
   if p.AvatarState == nil then
     p.AvatarState = 0
   end
-  stateOffset = p.AvatarState * 16
+  local stateOffset = p.AvatarState * 16
   if stateOffset >= image:getHeight() then
     stateOffset = 0
   end
