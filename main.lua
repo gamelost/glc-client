@@ -257,14 +257,9 @@ local function onKeyPress(key)
       console.input.start()
       keymode = "console"
     elseif key == "v" then
-      AvatarId = changeAvatar(AvatarId)
-      player.updateState({AvatarId = AvatarId})
+      player.changeAvatar()
     elseif key == "s" then
-      AvatarState = AvatarState + 1
-      if AvatarState > 2 then
-        AvatarState = 0
-      end
-      player.updateState({AvatarState = AvatarState})
+      player.changeAvatarState()
     end
   elseif keymode == "console" then
     if key == "tab" then

@@ -154,16 +154,31 @@ local function drawPlayers()
   drawPlayer(glcd.name, myPlayer)
 end
 
-local function changeAvatar(id)
+local function changeAvatarState()
+  local state = myState.AvatarState
+  if state == nil then
+    state = 0
+  else
+    state = state + 1
+  end
+  if state > 2 then
+    state = 0
+  end
+  updateMyState({AvatarState = state})
+end
+
+local function changeAvatar()
   local keys = {}
   local n    = 0
   local first = nil
   local ret = false
+  local id = myState.AvatarId
   for k, v in pairs(avatars) do
     n = n + 1
     keys[n] = k
     if ret then
-      return k
+      updateMyState({AvatarId = k})
+      return
     end
     if k == id then
       ret = true
@@ -172,7 +187,7 @@ local function changeAvatar(id)
       first = k
     end
   end
-  return first
+  updateMyState({AvatarId = first})
 end
 
 function doChat(text)
@@ -194,7 +209,8 @@ end
 
 return {
   drawPlayers = drawPlayers,
-  changeAvatar = changeAvater,
+  changeAvatar = changeAvatar,
+  changeAvatarState = changeAvatarState,
   updateState = updateMyState,
   chat = doChat,
   onChat = onOtherChat
