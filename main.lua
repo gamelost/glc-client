@@ -70,8 +70,6 @@ function love.load()
   vpoffsetx = bgCanvas:getWidth() / 2
   vpoffsety = bgCanvas:getHeight() / 2
 
-  vpx = -vpoffsetx
-  vpy = -vpoffsety
   -- initialize other player data
   otherPlayers = {}
 
