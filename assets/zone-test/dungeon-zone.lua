@@ -3,7 +3,7 @@ function init()
   -- -- TODO: should be self.assets[...]
   --tileset = require("assets/zone-test/Dungeon_sans_npcs")
   glc_tileset = require("library/tileset")
-  tileset = require("assets/zone-test/farmer-map")
+  tileset = require("assets/zone-test/out-of-farm")
   inspect = require("library/inspect")
   state.tileset = glc_tileset.load_tiles(tileset)
 end

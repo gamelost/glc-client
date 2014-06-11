@@ -58,8 +58,8 @@ function love.load()
   -- load player asset
   avatars = {}
   traverse("assets/avatars", setAvatar)
-  px = 0
-  py = 0
+  px = -32
+  py = -32
   -- default player speed
   pSpeed = 50
   -- default player avatar
@@ -108,7 +108,7 @@ function love.load()
   end
 
   glcd.send("connected")
-  updateMyState({Y=0, X=0, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
+  updateMyState({Y=px, X=py, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
@@ -134,19 +134,22 @@ function getZoneOffset(wx, wy)
   for idx = 1, #zones do
     local zId = zones[idx].state.data.id
     -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
-    local zoneWidth = 25 * 16 -- hardcode for now until the server passes the sorted zones table from left to right
+    local zoneWidth = settings.zone_width * settings.tile_width -- For now until the server passes the sorted zones table from left to right
+    local zoneHeight = settings.zone_height * settings.tile_height -- For now until the server passes the sorted zones table from left to right
     local wxMin = -1 * zId *  zoneWidth
+    local wyMin = -1 * zId *  zoneHeight
     local wxMax = wxMin - zoneWidth
-    print(string.format("getZoneOffset: idx=%d, wx=%d, zId=%d, zoneWidth=%d, wxMin=%d, wxMax=%d", idx, wx, zId, zoneWidth, wxMin, wxMax))
+    local wyMax = wyMin - zoneHeight
+    --print(string.format("getZoneOffset: idx=%d, wxy=(%d,%d), zId=%d, zoneDimen=(%d,%d), wxyMin=(%d,%d), wxyMax=(%d,%d)", idx, wx, wy, zId, zoneWidth, zoneHeight, wxMin, wyMin, wxMax, wyMax))
 
-    if wx <= wxMin and wx >= wxMax then
-      print("getZoneOffset: Found! zId=", zId)
+    if wx <= wxMin and wx >= wxMax and wy <= wyMin and wy >= wyMax then
+      --print("getZoneOffset: Found! zId=", zId)
       zpoint = {x = zId * wx, y = wy}
       zIndex = idx;
       mZone = zone
       break
     else
-      print("getZoneOffset: Not found! zId=", zId)
+      --print("getZoneOffset: Not found! zId=", zId)
       xOffset = xOffset + zoneWidth
     end
 
@@ -156,15 +159,35 @@ function getZoneOffset(wx, wy)
   return zIndex, zpoint, mZone
 end
 
-function hasCollison(x, y)
-  for k, v in ipairs(state.tileset) do
-    print("k, v", k, v)
-    for k2, v2 in pairs(states) do
-      print("k2, v2:", k2, v2)
+function hasCollision(mZone, x, y)
+  local isCollidable = false
+
+  if mZone then
+    --print("hasCollision: ", inspect(mZone.state.tileset.metadatas))
+    local metadatas = mZone.state.tileset.metadatas
+    local metalayer = metadatas.layers[1]
+    local tileId = 0
+
+    x = math.abs(x)
+    y = math.abs(y)
+    
+    -- use 'settings' global variable for now.
+    local gridx = math.ceil(x / settings.tile_width)
+    local gridy = math.ceil(y / settings.tile_height)
+    local metaIndex = (gridy - 1) * settings.zone_width + gridx
+    local metadata = nil
+
+    --print(string.format("[%d](%d,%d): ", metaIndex, gridx, gridy, inspect(metalayer.data[metaIndex])))
+    if metalayer then
+      metadata = metadatas[metalayer.data[metaIndex]]
+      --print("metadata:", inspect(metadata))
+    end
+    if metadata then
+      isCollidable = metadata.properties.collidable
     end
   end
 
-  return false
+  return isCollidable
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -207,9 +230,17 @@ function love.update(dt)
   end
 
   if dx ~= 0 or dy ~= 0 then
+    local oldPxy = {x = px, y = py}
     py = py + dy
     px = px + dx
-    local currZoneId, currZoneCoords, currZone  = getZoneOffset(px, py)
+    playerCoords = {x = (px), y = (py)}
+    local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+
+    if hasCollision(zones[currZoneId], playerCoords.x, playerCoords.y) then
+      -- revert to old coordinates
+      px = oldPxy.x
+      py = oldPxy.y
+    end
     updateMyState({Y = py, X = px})
   end
 end
