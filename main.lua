@@ -66,12 +66,11 @@ function love.load()
   AvatarId = "assets/avatars/ava1.png"
   AvatarState = 0
 
-  -- get the middle of the screen
-  poffsetx = - bgCanvas:getWidth() / 2
-  poffsety = - bgCanvas:getHeight() / 2
-  -- adjust for the middle of the sprite itself
-  poffsetx = poffsetx + 8
-  poffsety = poffsety + 8
+  -- Viewport Offset. Since we want positions relative to the center of the
+  -- screen, vpoffsetx and vpoffsety are added to everything on _render_ only.
+  vpoffsetx = bgCanvas:getWidth() / 2
+  vpoffsety = bgCanvas:getHeight() / 2
+
   -- initialize other player data
   otherPlayers = {}
 
@@ -187,7 +186,7 @@ function love.update(dt)
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
-      glcd.send("chat", {Message="Player has entered the Game!"})
+      glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
     end
   end
 
@@ -255,15 +254,26 @@ function love.draw()
   console.draw()
 end
 
-function drawText(rpx, rpy, str, r, g, b)
+
+-- drawText is for drawing text with a black border on the map,
+-- at a given x, y location relative to the map, not the screen.
+function drawText(x, y, str, r, g, b)
   -- Draw Name
   local MAX_WIDTH_OF_TEXT = 200
   local str_length = string.len(str) * 10
   local background_offset = str_length / 2
   local str_offset = MAX_WIDTH_OF_TEXT / 2
 
-  local rx = (width / 2) + (rpx * scaleX)
-  local ry = (height / 2) + (rpy * scaleY)
+  -- lpx is the position of the text relative to viewport offset,
+  -- since 0,0 is top-left corner.
+  local lpx = x + vpoffsetx
+  local lpy = y + vpoffsety
+
+  -- Since the text is scaled differently than the main map, rx+ry are
+  -- conversions of lpx and lpy to the scaled locations relative to
+  -- the screen.
+  local rx = lpx * scaleX
+  local ry = lpy * scaleY
 
   love.graphics.setCanvas(textCanvas)
   love.graphics.setColor(0, 0, 0, 255)
@@ -291,16 +301,19 @@ function drawPlayer(name, player)
     return
   end
   local frame = math.floor(love.timer.getTime() * 3) % 2
+
+  -- rpx and rpy - Position relative to current player. For current
+  -- player, rpx+y will always be 0.
   local rpx = math.floor(px - p.X)
   local rpy = math.floor(py - p.Y)
 
   -- Draw Avatar
-  image = avatars[p.AvatarId]
+  local image = avatars[p.AvatarId]
   if image == nil then
     image = defaultAvatar
   end
 
-  frameOffset = frame * 16
+  local frameOffset = frame * 16
   if frameOffset >= image:getWidth() then
     frameOffset = 0
   end
@@ -308,14 +321,20 @@ function drawPlayer(name, player)
   if p.AvatarState == nil then
     p.AvatarState = 0
   end
-  stateOffset = p.AvatarState * 16
+  local stateOffset = p.AvatarState * 16
   if stateOffset >= image:getHeight() then
     stateOffset = 0
   end
 
   love.graphics.setCanvas(bgCanvas)
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
-  love.graphics.draw(image, quad, rpx, rpy, 0, 1, 1, poffsetx, poffsety)
+
+  -- lpx and lpy: Position relative to viewport (top-left of screen)
+  -- For current player, rpx and rpy are 0, so vpoffestx+y offset to the center
+  -- of screen.
+  local lpx = rpx + vpoffsetx
+  local lpy = rpy + vpoffsety
+  love.graphics.draw(image, quad, lpx, lpy, 0, 1, 1, 8, 8)
 
   if p == myState then
     drawText(rpx, rpy - 12, name, 255, 255, 255)
