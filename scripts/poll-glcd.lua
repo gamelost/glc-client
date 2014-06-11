@@ -1,7 +1,6 @@
-require "library/nsq"
 require "os"
 require "conf"
-require "json"
+require "library/json"
 inspect = require("library/inspect")
 
 local clientid, recv = ...

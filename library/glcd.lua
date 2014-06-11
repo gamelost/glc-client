@@ -1,11 +1,9 @@
-require "library/nsq"
-require "socket"
-require "json"
-require "conf"
+require("socket")
+require("library/json")
+require("conf")
 
 underscore = require("library/underscore")
 inspect = require("library/inspect")
-nsq = require("library/nsqc")
 
 -- generate users' client ID
 s = socket.udp()
@@ -16,12 +14,14 @@ clientid = ip .. "-" .. playername
 fullclientid = settings.nsq_host .. ":" .. settings.nsq_port .. ":" .. settings.nsq_daemon_topic
 
 -- poll glcd (the server)
-glcd = love.thread.newThread("scripts/poll-glcd.lua")
+pollthread = love.thread.newThread("scripts/poll-glcd.lua")
 glcdrecv = love.thread.newChannel()
-glcd:start(clientid:sub(1,30), glcdrecv)
+pollthread:start(clientid:sub(1,30), glcdrecv)
 
--- nsq publishing connection
-pub = NsqHttp:new()
+-- Send messages (since network hangs main love thread)
+sendthread = love.thread.newThread("scripts/send-glcd.lua")
+glcdsend = love.thread.newChannel()
+sendthread:start(settings.nsq_daemon_topic, glcdsend)
 
 -- heartbeat
 lastheartbeat = love.timer.getTime()
@@ -42,8 +42,7 @@ function send(command, msg)
     Data = msg
   }
   local data = json.encode(val)
-  local result = pub:publish(settings.nsq_daemon_topic, data)
-  print("NSQ: Sending '" .. command .. "': ", result)
+  glcdsend:push(data)
 end
 
 function table.contains(table, element)
