@@ -66,7 +66,8 @@ function love.load()
   AvatarId = "assets/avatars/ava1.png"
   AvatarState = 0
 
-  -- get the middle of the screen
+  -- Viewport Offset. Since we want positions relative to the center of the
+  -- screen, vpoffsetx and vpoffsety are added to everything on _render_ only.
   vpoffsetx = bgCanvas:getWidth() / 2
   vpoffsety = bgCanvas:getHeight() / 2
 
