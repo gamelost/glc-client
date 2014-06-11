@@ -4,9 +4,9 @@ require("library/nsq")
 local topic, sendchan = ...
 
 -- nsq publishing connection
-pub = NsqHttp:new()
+local pub = NsqHttp:new()
 
 while true do
-  data = sendchan:demand()
-  result = pub:publish(topic, data)
+  local data = sendchan:demand()
+  pub:publish(topic, data)
 end
