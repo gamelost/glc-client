@@ -1,8 +1,8 @@
 require "love.filesystem"
 require "conf"
 
-current = {}
-wads = {}
+local current = {}
+local wads = {}
 
 function traverse(folder, callback)
   local files = love.filesystem.getDirectoryItems(folder)
@@ -69,7 +69,10 @@ function loadFile(filename)
   current[filename], err = love.filesystem.getLastModified(filename)
 end
 
-monitor_fs = {}
-monitor_fs.init = init
-monitor_fs.refresh = refresh
+local monitor_fs = {
+  init = init,
+  traverse = traverse,
+  refresh = refresh,
+  loadFile = loadFile
+}
 return monitor_fs

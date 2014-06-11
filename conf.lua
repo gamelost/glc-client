@@ -65,3 +65,5 @@ if local_settings ~= nil then
   local underscore = require("library/underscore")
   settings = underscore.extend(settings, local_settings())
 end
+
+return settings
