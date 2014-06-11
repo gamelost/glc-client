@@ -187,7 +187,7 @@ function love.update(dt)
     elapsed = love.timer.getTime() - splash_time
     if elapsed > 1.0 then
       splash = false
-      glcd.send("chat", {Message="Player has entered the Game!"})
+      glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
     end
   end
 
