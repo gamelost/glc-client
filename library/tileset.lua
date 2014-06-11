@@ -1,28 +1,38 @@
 local function populate_metadata(metas, tileset)
   for k, tile in ipairs(tileset.tiles) do
     local i = tileset.firstgid + tile.id
-    metas.properties = {}
-    metas.properties[i] = tile.properties
+    metas[i] = {}
+    metas[i].properties = tile.properties
   end
 end
 
-local function extract_metadata_layers(metas, tilesets)
-end
+local function load_metadatas(mTilesets)
+  mTilesets.metadatas = {}
 
-local function load_metadatas(tilesets)
-  tilesets.metadatas = {}
-
-  for k, v in ipairs(tilesets.tilesets) do
+  for k, v in ipairs(mTilesets.tilesets) do
     local counter = 1
 
     if v.properties.metadata then
-      populate_metadata(tilesets.metadatas, v)
+      populate_metadata(mTilesets.metadatas, v)
+    end
+  end
+end
+
+local function load_metalayers(mTilesets)
+  -- Save metadata layer in the metadatas table
+  mTilesets.metadatas.layers = {}
+  for _, layer in ipairs(mTilesets.layers) do
+    if layer.properties.metadata then
+      table.insert(mTilesets.metadatas.layers, layer)
     end
   end
 end
 
 local function load_tiles(tilesets)
   tilesets.all_tiles = {}
+
+  load_metadatas(tilesets)
+  load_metalayers(tilesets)
 
   for k, v in ipairs(tilesets.tilesets) do
     io.write("Loading tileset: " .. v.image)
