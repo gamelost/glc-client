@@ -2,6 +2,7 @@ require("socket")
 require("library/json")
 require("conf")
 require("library/nsq")
+local events = require("library/loveevents")
 
 local underscore = require("library/underscore")
 local inspect = require("library/inspect")
@@ -91,6 +92,8 @@ function poll()
     incoming = glcdrecv:pop()
   end
 end
+
+events.addHandler('update', 'glcd', poll)
 
 return {
   send = send,
