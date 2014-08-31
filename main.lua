@@ -5,6 +5,7 @@ glcd = require("library/glcd")
 console = require("library/console")
 handlers = require("glcd-handlers")
 inspect = require("library/inspect")
+splash_screen = require("loading/current")
 
 function updateMyState(opts)
   for k, v in pairs(opts) do
@@ -52,10 +53,8 @@ function love.load()
 
   -- load the splash screen
   splash = true
+  splash_screen.load()
   splash_time = love.timer.getTime()
-  glc = love.graphics.newImage("assets/gamelostcrash.png")
-  glc_w, glc_h = glc:getDimensions()
-  width, height = love.graphics.getDimensions()
 
   -- load player asset
   avatars = {}
@@ -129,7 +128,7 @@ function getZoneOffset(wx, wy)
   local zpoint = nil
   local zIndex = nil
   local mZone = nil
-  local xOffset = 0 
+  local xOffset = 0
 
 -- Assume 1-D horizontal zones for now.
 --  for _, zone in pairs(zones) do
@@ -172,7 +171,7 @@ function hasCollision(mZone, x, y)
 
     x = math.abs(x)
     y = math.abs(y)
-    
+
     -- use 'settings' global variable for now.
     local gridx = math.ceil(x / settings.tile_width)
     local gridy = math.ceil(y / settings.tile_height)
@@ -209,6 +208,7 @@ function love.update(dt)
   glcd.poll()
   if splash then
     elapsed = love.timer.getTime() - splash_time
+    splash_screen.update(elapsed)
     if elapsed > 1.0 then
       splash = false
       glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
@@ -251,11 +251,7 @@ end
 function love.draw()
 
   if splash then
-    -- draw splash screen
-    x = width/2 - glc_w/2
-    y = height/2 - glc_h/2
-    love.graphics.draw(glc, x, y)
-    love.graphics.setBackgroundColor(0x62, 0x36, 0xb3)
+    splash_screen.draw()
   else
     -- Clear canvases.
     bgCanvas:clear(0x62, 0x36, 0xb3)
