@@ -1,5 +1,6 @@
 require "conf"
 require "library/fs"
+require "library/json"
 
 glcd = require("library/glcd")
 console = require("library/console")
@@ -15,9 +16,22 @@ function updateMyState(opts)
   stateChanged = true
 end
 
+function randomQuote()
+  local f = io.open("assets/loading/quotes.json", "rb")
+  local quotes = json.decode(f:read("*all"))
+  f:close()
+  local index = math.random(#quotes.quotes)
+  return '"' .. quotes.quotes[index] .. '"'
+end
+
 -- Called only once when the game is started.
 function love.load()
+
+  math.randomseed(os.time())
+
+  -- introduction and random quote.
   console.log("** starting game lost crash client")
+  console.log(randomQuote())
   console.show()
 
   myState = {
