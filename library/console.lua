@@ -1,10 +1,9 @@
-local inc = 12 -- TODO: get current text height instead
 local visible = true
 
-local function drawBackground()
+local function drawBackground(line_height)
   local r, g, b, a = love.graphics.getColor()
   love.graphics.setColor(128, 128, 128, 128) -- Hardcoded for now.
-  love.graphics.rectangle("fill", 0, 0, win.width, (config.max_rows * inc) + 3)
+  love.graphics.rectangle("fill", 0, 0, win.width, (config.max_rows * line_height) + 3)
   love.graphics.setColor(r, g, b, a)
 end
 
@@ -21,18 +20,21 @@ local function draw()
     return
   end
 
-  drawBackground()
+  -- TODO: this module should manage its own font.
+  local line_height = love.graphics.getFont():getHeight()
+
+  drawBackground(line_height)
 
   for i = 1, config.max_rows do
     local k = messages[config.max_rows - i]
     --print("messages["..i.."]:", config.messages[i])
     if k ~= nil then
-      love.graphics.print(k, 0, (i - 1) * inc)
+      love.graphics.print(k, 0, (i - 1) * line_height)
     end
   end
 
   if console_in ~= nil then
-      love.graphics.print("> " .. console_in, 0, (config.max_rows - 1) * inc)
+      love.graphics.print("> " .. console_in, 0, (config.max_rows - 1) * line_height)
   end
 end
 
