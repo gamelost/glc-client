@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/gamelost/glc-client.png?label=ready&title=Ready)](https://waffle.io/gamelost/glc-client)
 glc-client
 ==========
 
