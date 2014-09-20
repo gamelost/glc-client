@@ -1,48 +1,48 @@
 require("socket")
-require("library/json")
 require("conf")
 require("library/nsq")
-
-local underscore = require("library/underscore")
+require("library/json")
 local inspect = require("library/inspect")
 
--- generate users' client ID
-local s = socket.udp()
-s:setpeername("8.8.8.8", 51)
-local ip, _ = s:getsockname()
-local playername = os.getenv("USER")
-
--- clientid: No longer just the playername.
-local clientid = ip .. "-" .. playername
-clientid = clientid:sub(1,30)
-
--- poll glcd (the server)
-local pollthread = love.thread.newThread("scripts/poll-glcd.lua")
-local glcdrecv = love.thread.newChannel()
-
--- Create and empty the channel, so we don't get old stuff from the last time
--- we were connected.
---
--- We do this first, and blocking, so we don't accidentally empty anything we
--- actually want.
-NsqHttp:createChannel(settings.nsq_gamestate_topic, clientid)
-NsqHttp:emptyChannel(settings.nsq_gamestate_topic, clientid)
-
--- poll glcd (the server)
-pollthread = love.thread.newThread("scripts/poll-glcd.lua")
-glcdrecv = love.thread.newChannel()
-pollthread:start(clientid, glcdrecv)
-
--- Send messages (since network hangs main love thread)
-local sendthread = love.thread.newThread("scripts/send-glcd.lua")
-local glcdsend = love.thread.newChannel()
-sendthread:start(settings.nsq_daemon_topic, glcdsend)
-
--- heartbeat
+-- glcd heartbeat
 local lastheartbeat = love.timer.getTime()
 
--- handlers
+-- glcd handlers: use addHandler(func, messageType) to add a function
+-- that will process the given message type
 local handlers = {}
+
+-- player name (for display purposes)
+local playername = os.getenv("USER")
+
+-- the channels we will use to communicate with glcd
+local glcdrecv = love.thread.newChannel()
+local glcdsend = love.thread.newChannel()
+
+function createClientID()
+  local s = socket.udp()
+  s:setpeername("8.8.8.8", 51)
+  local ip, _ = s:getsockname()
+  local id = ip .. "-" .. playername
+  return id:sub(1,30)
+end
+
+-- clientid, used to identify the player to glcd
+local clientid = createClientID()
+
+function init()
+  -- empty the channel, otherwise we may get notifications from stale
+  -- events. these functions are blocking.
+  NsqHttp:createChannel(settings.nsq_gamestate_topic, clientid)
+  NsqHttp:emptyChannel(settings.nsq_gamestate_topic, clientid)
+
+  -- poll glcd -- nonblocking
+  local pollthread = love.thread.newThread("scripts/poll-glcd.lua")
+  pollthread:start(clientid, glcdrecv)
+
+  -- push glcd -- nonblocking
+  local sendthread = love.thread.newThread("scripts/send-glcd.lua")
+  sendthread:start(settings.nsq_daemon_topic, glcdsend)
+end
 
 function addHandler(command, handler)
   assert(handler ~= nil)
@@ -59,20 +59,11 @@ function send(command, msg)
   glcdsend:push(data)
 end
 
-function table.contains(table, element)
-  for _, value in pairs(table) do
-    if value == element then
-      return table[element]
-    end
-  end
-  return nil
-end
-
 function poll()
   -- heartbeat
   local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then
-    send('heartbeat', { beat = "ba-dum"})
+    send('heartbeat', { beat = "ba-dum" })
     lastheartbeat = love.timer.getTime()
   end
 
@@ -87,12 +78,12 @@ function poll()
     if handlers[msg.Type] then
       handlers[msg.Type](msg.Data, msg)
     end
-
     incoming = glcdrecv:pop()
   end
 end
 
 return {
+  init = init,
   send = send,
   poll = poll,
   addHandler = addHandler,

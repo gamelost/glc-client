@@ -92,15 +92,15 @@ local function inputKey(key)
   end
 end
 
-local function inputClear(key)
+local function inputClear()
   console_in = nil
 end
 
-local function inputStart(key)
+local function inputStart()
   console_in = ""
 end
 
-config = {
+return {
   hide = hide,
   show = show,
   log = log,
@@ -115,5 +115,3 @@ config = {
   },
   max_rows = 8
 }
-
-return config

@@ -29,6 +29,9 @@ function love.load()
 
   math.randomseed(os.time())
 
+  -- start communication with the server.
+  glcd.init()
+
   -- introduction and random quote.
   console.log("** starting game lost crash client")
   console.log(randomQuote())
@@ -122,7 +125,7 @@ function love.load()
     zone.init()
   end
 
-  glcd.send("connected")
+  glcd.send("connected", {})
   updateMyState({Y=px, X=py, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
 end
 
