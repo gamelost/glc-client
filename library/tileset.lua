@@ -35,7 +35,7 @@ local function load_tiles(tilesets)
   load_metalayers(tilesets)
 
   for k, v in ipairs(tilesets.tilesets) do
-    io.write("Loading tileset: " .. v.image)
+    --io.write("Loading tileset: " .. v.image)
     v.tileset = love.graphics.newImage(v.image)
     v.num_tile_rows = v.imageheight / v.tileheight
     v.num_tile_cols = v.imagewidth / v.tilewidth
@@ -55,7 +55,7 @@ local function load_tiles(tilesets)
       end
       ty = ty + v.tileheight
     end
-    print(" ... [tile #" .. v.firstgid .. " - " .. (v.lastgid) .. "]  DONE!")
+    --print(" ... [tile #" .. v.firstgid .. " - " .. (v.lastgid) .. "]  DONE!")
   end
   print("Done loading tilesets.")
   return tilesets
@@ -109,7 +109,10 @@ local function draw_tiles(tilesets, id)
           local tileheight = tile_data.tileheight
           local x = layer.x + (posx * tile_data.tilewidth)
           local y = layer.y + (posy * tile_data.tileheight)
-          love.graphics.draw(tile_data.tileset, tile_data.quads[v], zone_offset + math.floor(x + px + vpoffsetx), math.floor(y + py + vpoffsety))
+
+          local mx, my = layers.background:midpoint()
+          love.graphics.draw(tile_data.tileset, tile_data.quads[v], zone_offset + math.floor(x + px + mx), math.floor(y + py + my))
+
         end
         posx = posx + 1
       end

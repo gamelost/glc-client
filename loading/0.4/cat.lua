@@ -66,13 +66,13 @@ function cat_draw()
   local x = width/2 - glc_w/2
   local y = height/2 - glc_h/2
   local previous_font = love.graphics.getFont()
+  love.graphics.setBackgroundColor(255, 255, 255, 0)
   love.graphics.setFont(loading_font)
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(current_frame, x, y)
   love.graphics.setColor(0, 0, 0)
   love.graphics.print("game lost crash* client v0.4", x + 56, y + 32)
   love.graphics.print("* WARNING: may live up to its namesake.", 0, height-24)
-  love.graphics.setBackgroundColor(255, 255, 255)
   love.graphics.setFont(previous_font)
 end
 
