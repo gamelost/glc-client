@@ -68,6 +68,11 @@ local function draw_tiles(tilesets, id)
     return
   end
 
+  local mx, my = layers.background:midpoint()
+  local zone_offset = (id * settings.zone_width * settings.tile_width)
+  love.graphics.translate(mx, my)
+  love.graphics.translate(zone_offset, 0)
+
   for index, layer in ipairs(tilesets.layers) do -- paint tiles layer by layer
     --print("Painting "..layer.name.." layer")
     if not layer.visible then
@@ -80,8 +85,6 @@ local function draw_tiles(tilesets, id)
       end
     end
 
-    local zone_offset = (id * settings.zone_width * settings.tile_width)
-    local opacity = layer.opacity
     local posx = 0
     local posy = 0
 
@@ -89,6 +92,9 @@ local function draw_tiles(tilesets, id)
     local consume = 0
     local width = math.min(layer.width, settings.zone_width)
     local left = math.max(layer.width - settings.zone_width, 0)
+
+    love.graphics.push()
+    love.graphics.translate(layer.x, layer.y)
 
     for k, v in ipairs(layer.data) do
       if posx >= width then
@@ -105,19 +111,16 @@ local function draw_tiles(tilesets, id)
       else
         local tile_data = tilesets.all_tiles[v]
         if tile_data ~= nil then
-          local tilewidth = tile_data.tilewidth
-          local tileheight = tile_data.tileheight
-          local x = layer.x + (posx * tile_data.tilewidth)
-          local y = layer.y + (posy * tile_data.tileheight)
-
-          local mx, my = layers.background:midpoint()
-          love.graphics.draw(tile_data.tileset, tile_data.quads[v], zone_offset + math.floor(x + px + mx), math.floor(y + py + my))
-
+          local x = posx * tile_data.tilewidth
+          local y = posy * tile_data.tileheight
+          love.graphics.draw(tile_data.tileset, tile_data.quads[v], math.floor(x + px), math.floor(y + py))
         end
         posx = posx + 1
       end
 
     end
+    love.graphics.pop()
+
   end
 end
 
