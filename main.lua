@@ -1,8 +1,10 @@
 require "conf"
 require "library/fs"
 require "library/json"
+require "library/coords"
 
 glcd = require("library/glcd")
+layer = require("library/layer")
 console = require("library/console")
 handlers = require("glcd-handlers")
 inspect = require("library/inspect")
@@ -55,14 +57,17 @@ function love.load()
   updateFixedInterval = 1.0 / updateFrequency
   timeAccum = 0.0
 
-  -- set up the canvas
-  bgCanvas = love.graphics.newCanvas(settings.tiles_per_row * settings.tile_width,
-                                   settings.tiles_per_column * settings.tile_height)
-  bgCanvas:setFilter("nearest", "nearest") -- linear interpolation
-  scaleX, scaleY = win.width / bgCanvas:getWidth(), win.height / bgCanvas:getHeight()
+  -- set up layers
+  layers = {
+    background = layer:new{width = settings.tiles_per_row * settings.tile_width,
+                           height = settings.tiles_per_column * settings.tile_height},
+    splash = layer:new{},
+    console = layer:new{},
+    text = layer:new{},
+  }
 
-  textCanvas = love.graphics.newCanvas(win.width, win.height)
-  textCanvas:setFilter("nearest", "nearest") -- linear interpolation
+  -- the console layer should always be seen.
+  layers.console:activate()
 
   -- set up the font
   local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
@@ -72,6 +77,7 @@ function love.load()
   splash = true
   splash_screen.load()
   splash_time = love.timer.getTime()
+  layers.splash:activate()
 
   -- load player asset
   avatars = {}
@@ -83,11 +89,6 @@ function love.load()
   -- default player avatar
   AvatarId = "assets/avatars/ava1.png"
   AvatarState = 0
-
-  -- Viewport Offset. Since we want positions relative to the center of the
-  -- screen, vpoffsetx and vpoffsety are added to everything on _render_ only.
-  vpoffsetx = bgCanvas:getWidth() / 2
-  vpoffsety = bgCanvas:getHeight() / 2
 
   -- initialize other player data
   otherPlayers = {}
@@ -125,7 +126,7 @@ function love.load()
     zone.init()
   end
 
-  glcd.send("connected", {})
+  glcd.send("connected")
   updateMyState({Y=px, X=py, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
 end
 
@@ -135,46 +136,6 @@ function love.fixed(dt)
     glcd.send("playerState", myState)
     stateChanged = false
   end
-end
-
--- Get current zone.
---  wx - number: World x-coordinate.
---  wy - number: World y-coordinate.
---  return - zone offset number, its transformed coordinates, and the selected zone object itself.
-function getZoneOffset(wx, wy)
-  local zpoint = nil
-  local zIndex = nil
-  local mZone = nil
-  local xOffset = 0
-
--- Assume 1-D horizontal zones for now.
---  for _, zone in pairs(zones) do
-  for idx = 1, #zones do
-    local zId = zones[idx].state.data.id
-    -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
-    local zoneWidth = settings.zone_width * settings.tile_width -- For now until the server passes the sorted zones table from left to right
-    local zoneHeight = settings.zone_height * settings.tile_height -- For now until the server passes the sorted zones table from left to right
-    local wxMin = -1 * zId *  zoneWidth
-    local wyMin = -1 * zId *  zoneHeight
-    local wxMax = wxMin - zoneWidth
-    local wyMax = wyMin - zoneHeight
-    --print(string.format("getZoneOffset: idx=%d, wxy=(%d,%d), zId=%d, zoneDimen=(%d,%d), wxyMin=(%d,%d), wxyMax=(%d,%d)", idx, wx, wy, zId, zoneWidth, zoneHeight, wxMin, wyMin, wxMax, wyMax))
-
-    if wx <= wxMin and wx >= wxMax and wy <= wyMin and wy >= wyMax then
-      --print("getZoneOffset: Found! zId=", zId)
-      zpoint = {x = zId * wx, y = wy}
-      zIndex = idx;
-      mZone = zone
-      break
-    else
-      --print("getZoneOffset: Not found! zId=", zId)
-      xOffset = xOffset + zoneWidth
-    end
-
-    idx = idx + 1
-  end
-
-  return zIndex, zpoint, mZone
 end
 
 function hasCollision(mZone, x, y)
@@ -228,6 +189,11 @@ function love.update(dt)
     splash_screen.update(elapsed)
     if elapsed > 1.0 then
       splash = false
+      -- swap layers.
+      layers.splash:deactivate()
+      layers.background:activate()
+      layers.text:activate()
+      -- send message to everyone!
       glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
     end
   end
@@ -266,79 +232,95 @@ end
 
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
+  -- on the start of each frame, clear all layers.
+  layers.splash:clear()
+  layers.background:clear()
+  layers.text:clear()
+  layers.console:clear()
+
+  -- draw console layer first.
+  layers.console:draw(console.draw)
 
   if splash then
-    splash_screen.draw()
+    layers.splash:draw(splash_screen.draw)
+    layers.splash:background(255, 255, 255, 0)
   else
-    -- Clear canvases.
-    bgCanvas:clear(0x62, 0x36, 0xb3)
-    textCanvas:clear(0, 0, 0, 0)
-
-    love.graphics.setCanvas(bgCanvas) -- draw to this canvas
     -- draw zones
     if #zones == 0 then
       console.log("No zones found.")
     end
     for _, zone in pairs(zones) do
-      zone.update()
+      layers.background:draw(zone.update)
     end
 
     -- draw other players
     for name, p in pairs(otherPlayers) do
-      drawPlayer(name, p)
+      layers.background:draw(drawPlayer, {name, p})
+      layers.text:draw(drawPlayerAttributes, {name, p})
     end
 
-    -- draw player
-    drawPlayer(glcd.name, myPlayer)
+    layers.background:draw(drawPlayer, {glcd.name, myPlayer})
+    layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
   end
 
-  -- set target canvas back to screen and scale
-  love.graphics.setCanvas()
-  love.graphics.draw(bgCanvas, 0, 0, 0, scaleX, scaleY)
-  love.graphics.draw(textCanvas, 0, 0, 0, 1, 1)
-
-  console.draw()
+  -- now render all layers. order matters!
+  layers.splash:render()
+  layers.background:render()
+  layers.text:render()
+  layers.console:render()
 end
 
+function drawPlayerAttributes(name, player)
+  local p = player.state
+  if not p or not p.X then
+    return
+  end
+  local rpx = math.floor(px - p.X)
+  local rpy = math.floor(py - p.Y)
+  if p == myState then
+    drawText(rpx, rpy - 12, name, 255, 255, 255)
+  else
+    drawText(rpx, rpy - 12, name, 0, 255, 128)
+  end
+
+  -- Text shows for 5 seconds.
+  local exp = love.timer.getTime() - 3
+  if player.msg and player.msgtime > exp then
+    drawText(rpx, rpy - 25, player.msg, 0, 255, 255)
+  end
+end
 
 -- drawText is for drawing text with a black border on the map,
 -- at a given x, y location relative to the map, not the screen.
 function drawText(x, y, str, r, g, b)
   -- Draw Name
   local MAX_WIDTH_OF_TEXT = 200
-  local str_length = string.len(str) * 10
-  local background_offset = str_length / 2
   local str_offset = MAX_WIDTH_OF_TEXT / 2
 
-  -- lpx is the position of the text relative to viewport offset,
-  -- since 0,0 is top-left corner.
-  local lpx = x + vpoffsetx
-  local lpy = y + vpoffsety
+  local mx, my = layers.background:midpoint()
+  local rx, ry = layers.background:coordinates(mx + x, my + y)
 
-  -- Since the text is scaled differently than the main map, rx+ry are
-  -- conversions of lpx and lpy to the scaled locations relative to
-  -- the screen.
-  local rx = lpx * scaleX
-  local ry = lpy * scaleY
+  love.graphics.push()
+  love.graphics.translate(rx, ry)
+  love.graphics.translate(- str_offset, 0)
 
-  love.graphics.setCanvas(textCanvas)
+  -- fake outlines
   love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.printf(str, rx - str_offset - 2, ry - 2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset - 2, ry, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset - 2, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, -2, -2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, -2,  0, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str, -2,  2, MAX_WIDTH_OF_TEXT, "center")
 
-  love.graphics.printf(str, rx - str_offset, ry - 2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str,  0, -2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str,  0,  2, MAX_WIDTH_OF_TEXT, "center")
 
-  love.graphics.printf(str, rx - str_offset + 2, ry - 2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset + 2, ry, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, rx - str_offset + 2, ry + 2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str,  2, -2, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str,  2,  0, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.printf(str,  2,  2, MAX_WIDTH_OF_TEXT, "center")
 
   -- Set color of text and fill in.
   love.graphics.setColor(r, g, b)
-  love.graphics.printf(str, rx - str_offset, ry, MAX_WIDTH_OF_TEXT, "center")
-
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.printf(str,  0,  0, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.pop()
 end
 
 function drawPlayer(name, player)
@@ -347,11 +329,6 @@ function drawPlayer(name, player)
     return
   end
   local frame = math.floor(love.timer.getTime() * 3) % 2
-
-  -- rpx and rpy - Position relative to current player. For current
-  -- player, rpx+y will always be 0.
-  local rpx = math.floor(px - p.X)
-  local rpy = math.floor(py - p.Y)
 
   -- Draw Avatar
   local image = avatars[p.AvatarId]
@@ -372,34 +349,22 @@ function drawPlayer(name, player)
     stateOffset = 0
   end
 
-  love.graphics.setCanvas(bgCanvas)
+  local mx, my = layers.background:midpoint()
+  love.graphics.translate(mx, my)
+
+  local rpx = math.floor(px - p.X)
+  local rpy = math.floor(py - p.Y)
+  love.graphics.translate(rpx, rpy)
+
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
-
-  -- lpx and lpy: Position relative to viewport (top-left of screen)
-  -- For current player, rpx and rpy are 0, so vpoffestx+y offset to the center
-  -- of screen.
-  local lpx = rpx + vpoffsetx
-  local lpy = rpy + vpoffsety
-  love.graphics.draw(image, quad, lpx, lpy, 0, 1, 1, 8, 8)
-
-  if p == myState then
-    drawText(rpx, rpy - 12, name, 255, 255, 255)
-  else
-    drawText(rpx, rpy - 12, name, 0, 255, 128)
-  end
-
-  -- Text shows for 5 seconds.
-  local exp = love.timer.getTime() - 3
-  if player.msg and player.msgtime > exp then
-    drawText(rpx, rpy - 25, player.msg, 0, 255, 255)
-  end
+  love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
 end
 
 -- Avatar related functions
 function setAvatar(file)
-  print("setAvatar('" .. file .. "')")
+  --print("setAvatar('" .. file .. "')")
   if string.sub(file, -4) == ".png" then
-    print(" ... loading")
+    --print(" ... loading")
     avatars[file] = love.graphics.newImage(file)
     if defaultAvatar == nil then
       defaultAvatar = avatars[file]

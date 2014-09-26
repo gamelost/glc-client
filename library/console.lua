@@ -100,7 +100,7 @@ local function inputStart()
   console_in = ""
 end
 
-return {
+config = {
   hide = hide,
   show = show,
   log = log,
@@ -115,3 +115,5 @@ return {
   },
   max_rows = 8
 }
+
+return config
