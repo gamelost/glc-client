@@ -31,11 +31,11 @@ __OSX__:
 
 Open up a Terminal and type in:
 
-	open -n -a love <directory of glc-client>
+	/Applications/love.app/Contents/MacOS/love <directory of glc-client>
 
 You can `cd` to the directory containing `glc-client` and type in:
 
-	open -n -a love .
+	/Applications/love.app/Contents/MacOS/love .
 
 I recommend creating an alias in `~/.bash_profile` to execute the `love` binary directly. If you do not do this, output will not be visible on the console window.
 
