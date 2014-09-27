@@ -36,7 +36,12 @@ local function load_tiles(tilesets)
 
   for k, v in ipairs(tilesets.tilesets) do
     --io.write("Loading tileset: " .. v.image)
-    v.tileset = love.graphics.newImage(v.image)
+    if love.filesystem.isFile(v.image) then
+      v.tileset = love.graphics.newImage(v.image)
+    else
+      print("Warning: cannot find tile file " .. v.image)
+    end
+
     v.num_tile_rows = v.imageheight / v.tileheight
     v.num_tile_cols = v.imagewidth / v.tilewidth
     v.num_tiles = v.num_tile_rows * v.num_tile_cols
@@ -57,7 +62,7 @@ local function load_tiles(tilesets)
     end
     --print(" ... [tile #" .. v.firstgid .. " - " .. (v.lastgid) .. "]  DONE!")
   end
-  print("Done loading tilesets.")
+  --print("Done loading tilesets.")
   return tilesets
 end
 

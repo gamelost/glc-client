@@ -1,7 +1,7 @@
 require "conf"
 require "library/fs"
 require "library/json"
-require "library/coords"
+require "library/collision"
 
 glcd = require("library/glcd")
 layer = require("library/layer")
@@ -138,37 +138,6 @@ function love.fixed(dt)
   end
 end
 
-function hasCollision(mZone, x, y)
-  local isCollidable = false
-
-  if mZone then
-    --print("hasCollision: ", inspect(mZone.state.tileset.metadatas))
-    local metadatas = mZone.state.tileset.metadatas
-    local metalayer = metadatas.layers[1]
-    local tileId = 0
-
-    x = math.abs(x)
-    y = math.abs(y)
-
-    -- use 'settings' global variable for now.
-    local gridx = math.ceil(x / settings.tile_width)
-    local gridy = math.ceil(y / settings.tile_height)
-    local metaIndex = (gridy - 1) * settings.zone_width + gridx
-    local metadata = nil
-
-    --print(string.format("[%d](%d,%d): ", metaIndex, gridx, gridy, inspect(metalayer.data[metaIndex])))
-    if metalayer then
-      metadata = metadatas[metalayer.data[metaIndex]]
-      --print("metadata:", inspect(metadata))
-    end
-    if metadata then
-      isCollidable = metadata.properties.collidable
-    end
-  end
-
-  return isCollidable
-end
-
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
@@ -220,7 +189,6 @@ function love.update(dt)
     px = px + dx
     playerCoords = {x = (px), y = (py)}
     local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
-
     if hasCollision(zones[currZoneId], playerCoords.x, playerCoords.y) then
       -- revert to old coordinates
       px = oldPxy.x

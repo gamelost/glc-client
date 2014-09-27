@@ -1,5 +1,4 @@
 function init()
-  print("initializing dungeon-zone")
   -- -- TODO: should be self.assets[...]
   --tileset = require("assets/zone-test/Dungeon_sans_npcs")
   glc_tileset = require("library/tileset")
