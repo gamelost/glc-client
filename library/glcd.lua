@@ -12,7 +12,7 @@ local lastheartbeat = love.timer.getTime()
 local handlers = {}
 
 -- player name (for display purposes)
-local playername = os.getenv("USER")
+local playername = os.getenv("USER") or os.getenv("USERNAME")
 
 -- the channels we will use to communicate with glcd
 local glcdrecv = love.thread.newChannel()
