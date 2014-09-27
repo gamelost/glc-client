@@ -400,6 +400,11 @@ function love.keypressed(key)
         AvatarState = 0
       end
       updateMyState({AvatarState = AvatarState})
+    elseif key == "l" then
+      local currZoneId, currZoneCoords, currZone = getZoneOffset(px, py)
+      if currZone then
+        currZone.state.toggle_next_layer(currZone.state.tiles)
+      end
     end
   elseif keymode == "console" then
     if key == "tab" then

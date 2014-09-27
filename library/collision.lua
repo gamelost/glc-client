@@ -27,7 +27,7 @@ function getZoneOffset(wx, wy)
         --print("getZoneOffset: Found! zId=", zId)
         zpoint = {x = zId * wx, y = wy}
         zIndex = idx;
-        mZone = zone
+        mZone = zones[idx]
         break
       else
         --print("getZoneOffset: Not found! zId=", zId)
@@ -44,7 +44,7 @@ function hasCollision(mZone, x, y)
 
   if mZone then
     --print("hasCollision: ", inspect(mZone.state.tileset.metadatas))
-    local metadatas = mZone.state.tileset.metadatas
+    local metadatas = mZone.state.tiles.metadatas
     local metalayer = metadatas.layers[1]
     local tileId = 0
 
