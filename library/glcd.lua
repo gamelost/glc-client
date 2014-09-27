@@ -71,7 +71,7 @@ function send(command, msg)
   glcdsend:push(data)
 end
 
-local playerStatus = "ACTIVE"
+local playerStatus = "OFFLINE"
 
 function sendHeartbeat()
   local msg = {
@@ -81,7 +81,7 @@ function sendHeartbeat()
   }
 
   if playerStatus == "QUIT" then
-    sendSnychronous('heartbeat', msg)
+    sendSynchronous('heartbeat', msg)
   else
     send('heartbeat', msg)
   end
@@ -89,10 +89,10 @@ function sendHeartbeat()
 end
 
 function setPlayerStatus(newStatus)
-  if not playerStatus == newStatus then
+  if playerStatus ~= newStatus then
+    playerStatus = newStatus
     sendHeartbeat()
   end
-  playerStatus = newStatus
 end
 
 function poll()
@@ -106,7 +106,9 @@ function poll()
   local incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
-    --print("incoming: " .. inspect(msg))
+    if msg.Type ~= 'playerState' then
+      print("incoming: " .. inspect(msg))
+    end
 
     assert(#msg==0)
 

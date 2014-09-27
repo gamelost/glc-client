@@ -107,6 +107,7 @@ function love.load()
   glcd.addHandler("error", handlers.error)
   glcd.addHandler("updateZone", handlers.updateZone)
   glcd.addHandler("playerGone", handlers.playerGone)
+  glcd.addHandler("playerHeartbeat",  handlers.playerHeartbeat)
   glcd.addHandler("playerState", handlers.playerState)
 
   -- Add console handlers.
