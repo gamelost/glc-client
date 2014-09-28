@@ -238,8 +238,8 @@ function love.draw()
 
     -- draw other players
     for name, p in pairs(otherPlayers) do
-      layers.background:draw(drawPlayer, {name, p})
-      layers.text:draw(drawPlayerAttributes, {name, p})
+      layers.background:draw(drawPlayer, {p.name, p})
+      layers.text:draw(drawPlayerAttributes, {p.name, p})
     end
 
     layers.background:draw(drawPlayer, {glcd.name, myPlayer})
