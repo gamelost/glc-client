@@ -106,9 +106,6 @@ function poll()
   local incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
-    if msg.Type ~= 'playerState' then
-      print("incoming: " .. inspect(msg))
-    end
 
     assert(#msg==0)
 
