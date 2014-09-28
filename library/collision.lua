@@ -51,7 +51,7 @@ function getZoneOffset(wx, wy)
       local zId = zones[idx].state.data.id
       -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
       local wxMin = -1 * zId *  zoneWidth
-      local wyMin = -1 * zId *  zoneHeight
+      local wyMin = -1 * zId
       local wxMax = wxMin - zoneWidth
       local wyMax = wyMin - zoneHeight
       --print(string.format("getZoneOffset: idx=%d, wxy=(%d,%d), zId=%d, zoneDimen=(%d,%d), wxyMin=(%d,%d), wxyMax=(%d,%d)", idx, wx, wy, zId, zoneWidth, zoneHeight, wxMin, wyMin, wxMax, wyMax))
