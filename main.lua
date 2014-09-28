@@ -183,6 +183,18 @@ function love.update(dt)
   if love.keyboard.isDown("right") then
     dx = dx - speed
   end
+  
+  if dy > 0 then
+    dy = math.ceil(dy)
+  elseif dy < 0 then
+    dy = math.floor(dy)
+  end
+  
+  if dx > 0 then
+    dx = math.ceil(dx)
+  elseif dx < 0 then
+    dx = math.floor(dx)
+  end
 
   if dx ~= 0 or dy ~= 0 then
     local oldPxy = {x = px, y = py}
