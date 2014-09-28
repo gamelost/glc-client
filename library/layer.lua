@@ -8,12 +8,13 @@ function Layer:new(args)
   -- set defaults.
   self.width = args.width or win.width
   self.height = args.height or win.height
-  self.x = self.x or 0
-  self.y = self.y or 0
-  self.r = self.r or 0
+  self.x = args.x or 0
+  self.y = args.y or 0
+  self.r = args.r or 0
   self.sx = win.width / self.width
   self.sy = win.height / self.height
-  self.drawable = false
+  self.drawable = args.drawable or false
+  self.priority = args.priority or 10 -- default to last
 
   -- set up the canvas. we almost always want linear interpolation.
   self.canvas = love.graphics.newCanvas(self.width, self.height)
