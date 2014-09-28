@@ -37,6 +37,9 @@ function onPlayerState(v)
       otherPlayers[clientid] = {name=clientid}
       if v.Name then
         otherPlayers[clientid].name = v.Name
+      else
+        local tokens = string.gmatch(clientid, "-")
+        otherPlayers[clientid].name = tokens[2]
       end
     end
     otherPlayers[clientid].state = v
