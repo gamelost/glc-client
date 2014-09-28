@@ -188,7 +188,9 @@ return {
       height = 15,
       visible = true,
       opacity = 1,
-      properties = {},
+      properties = {
+        ["visible"] = "always"
+      },
       encoding = "lua",
       data = {
         10, 10, 10, 361, 362, 363, 1423, 381, 361, 403, 1928, 1930, 401, 362, 363, 10, 10, 10, 10, 10,

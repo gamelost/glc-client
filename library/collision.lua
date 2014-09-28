@@ -41,16 +41,17 @@ function getZoneOffset(wx, wy)
   local mZone = nil
   local xOffset = 0
 
+  local zoneWidth = settings.zone_width * settings.tile_width
+  local zoneHeight = settings.zone_height * settings.tile_height
+
 -- Assume 1-D horizontal zones for now.
 --  for _, zone in pairs(zones) do
   for idx = 1, #zones do
     if zones[idx].state.data then
       local zId = zones[idx].state.data.id
       -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
-      local zoneWidth = settings.zone_width * settings.tile_width -- For now until the server passes the sorted zones table from left to right
-      local zoneHeight = settings.zone_height * settings.tile_height -- For now until the server passes the sorted zones table from left to right
       local wxMin = -1 * zId *  zoneWidth
-      local wyMin = -1 * zId *  zoneHeight
+      local wyMin = -1 * zId
       local wxMax = wxMin - zoneWidth
       local wyMax = wyMin - zoneHeight
       --print(string.format("getZoneOffset: idx=%d, wxy=(%d,%d), zId=%d, zoneDimen=(%d,%d), wxyMin=(%d,%d), wxyMax=(%d,%d)", idx, wx, wy, zId, zoneWidth, zoneHeight, wxMin, wyMin, wxMax, wyMax))
@@ -76,8 +77,22 @@ function hasCollision(mZone, x, y)
 
   if mZone then
     --print("hasCollision: ", inspect(mZone.state.tileset.metadatas))
-    local metadatas = mZone.state.tiles.metadatas
+    local metadatas = mZone.state.tiles.metadata
+
+    -- select the metadata layer that corresponds with this layer. but
+    -- by default (and for backwards compatibility) we choose the
+    -- first metadata layer.
+    local current = mZone.state.tiles.current_layer
     local metalayer = metadatas.layers[1]
+    if current and current.name then
+      for _, ml in ipairs(metadatas.layers) do
+        if ml.properties.name == current.name then
+          metalayer = ml
+          break
+        end
+      end
+    end
+
     local tileId = 0
 
     x = math.abs(x)
