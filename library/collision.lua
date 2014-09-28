@@ -1,4 +1,36 @@
 
+function randomZoneLocation()
+
+  -- up to 10 attempts.
+  local successful = false
+  local this_zone = zones[3]
+  local x = 0
+  local y = 0
+
+  --for i = 1, 10000000 do
+  while true do
+    x = - math.random(1, settings.zone_width * settings.tile_width)
+    y = - math.random(1, settings.zone_width * settings.tile_width)
+
+    -- test for collisions
+    successful = not (hasCollision(this_zone, x, y) or
+                        hasCollision(this_zone, x - 8, y) or
+                        hasCollision(this_zone, x + 8, y) or
+                        hasCollision(this_zone, x, y - 8) or
+                        hasCollision(this_zone, x, y + 8))
+    if successful then
+      break
+    end
+  end
+
+  if not successful then
+    x = -32
+    y = -32
+  end
+
+  return x, y
+end
+
 -- Get current zone.
 --  wx - number: World x-coordinate.
 --  wy - number: World y-coordinate.
@@ -54,10 +86,10 @@ function hasCollision(mZone, x, y)
     -- use 'settings' global variable for now.
     local gridx = math.ceil(x / settings.tile_width)
     local gridy = math.ceil(y / settings.tile_height)
+
     local metaIndex = (gridy - 1) * settings.zone_width + gridx
     local metadata = nil
 
-    --print(string.format("[%d](%d,%d): ", metaIndex, gridx, gridy, inspect(metalayer.data[metaIndex])))
     if metalayer then
       metadata = metadatas[metalayer.data[metaIndex]]
       --print("metadata:", inspect(metadata))
@@ -65,6 +97,7 @@ function hasCollision(mZone, x, y)
     if metadata then
       isCollidable = metadata.properties.collidable
     end
+    -- print(string.format("got %d, %d and ended up with [%d](%d,%d): %s", x, y, metaIndex, gridx, gridy, coll))
   end
 
   return isCollidable
