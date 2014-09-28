@@ -386,7 +386,14 @@ function drawPlayer(name, player)
   love.graphics.translate(rpx, rpy)
 
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
-  love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
+
+  local direction = player.state.direction or "right"
+  if direction == "right" then
+    love.graphics.draw(image, quad, 0, 0, 0, -1, 1, 8, 8)
+  else
+    love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
+  end
+
   love.graphics.pop()
 end
 
