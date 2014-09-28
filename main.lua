@@ -225,7 +225,7 @@ function love.update(dt)
       px = oldPxy.x
       py = oldPxy.y
     end
-    updateMyState({Y = py, X = px, direction = direction})
+    updateMyState({X = px, Y = py, direction = direction})
   end
 end
 
