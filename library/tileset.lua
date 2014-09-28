@@ -1,3 +1,5 @@
+inspect = require("library/inspect")
+
 local function populate_metadata(metas, tileset)
   for k, tile in ipairs(tileset.tiles) do
     local i = tileset.firstgid + tile.id
@@ -6,12 +8,9 @@ local function populate_metadata(metas, tileset)
   end
 end
 
-local function load_metadatas(mTilesets)
+local function load_metadata(mTilesets)
   mTilesets.metadatas = {}
-
   for k, v in ipairs(mTilesets.tilesets) do
-    local counter = 1
-
     if v.properties.metadata then
       populate_metadata(mTilesets.metadatas, v)
     end
@@ -28,41 +27,134 @@ local function load_metalayers(mTilesets)
   end
 end
 
-local function load_tiles(tilesets)
-  tilesets.all_tiles = {}
+function reload_layer(tilesets)
+  for _, batch in ipairs(tilesets.sprite_batches) do
+    batch:clear()
+  end
 
-  load_metadatas(tilesets)
+  -- TODO only one layer visible at a time?
+  for index, layer in ipairs(tilesets.layers) do
+    if layer.visible then
+      if not string.find(layer.name, "Meta:") and not settings.show_metadata_layer then
+        load_layer(layer, tilesets.sprite_info)
+      end
+    end
+  end
+end
+
+function toggle_next_layer(tilesets)
+  local hit = 0
+  local counter = 0
+  for index, layer in ipairs(tilesets.layers) do
+    counter = counter + 1
+    if layer.visible then
+      layer.visible = false
+      hit = counter
+    end
+  end
+  hit = hit % #tilesets.layers
+  counter = 0
+  for index, layer in ipairs(tilesets.layers) do
+    -- TODO hack
+    if not string.find(layer.name, "Meta:") then
+      if counter == hit then
+        layer.visible = true
+        break
+      end
+    end
+    counter = counter + 1
+  end
+
+  -- always have the main layer visible.
+  for index, layer in ipairs(tilesets.layers) do
+    layer.visible = true
+    break
+  end
+
+  reload_layer(tilesets)
+end
+
+function load_layer(layer, sprite_info)
+  local posx = 0
+  local posy = 0
+
+  -- "eat" the rest of the layer data if needed
+  local consume = 0
+  local width = math.min(layer.width, settings.zone_width)
+  local left = math.max(layer.width - settings.zone_width, 0)
+
+  for k, v in ipairs(layer.data) do
+    if posx >= width then
+      posx = 0
+      posy = posy + 1
+      consume = left
+    end
+    if posy >= settings.zone_height then
+      break
+    end
+
+    if consume > 0 then
+      consume = consume - 1
+    else
+      local tile_data = sprite_info[v]
+      if tile_data ~= nil then
+        local x = posx * tile_data.width
+        local y = posy * tile_data.height
+        tile_data.sprite:add(tile_data.quad, x, y)
+      end
+      posx = posx + 1
+    end
+  end
+end
+
+local function load_batched_tiles(tilesets)
+
+  tilesets.sprite_info = {}
+  tilesets.sprite_batches = {}
+
+  load_metadata(tilesets)
   load_metalayers(tilesets)
 
+  local limit = tilesets.width * tilesets.height
+
   for k, v in ipairs(tilesets.tilesets) do
-    --io.write("Loading tileset: " .. v.image)
     if love.filesystem.isFile(v.image) then
-      v.tileset = love.graphics.newImage(v.image)
+      image = love.graphics.newImage(v.image)
     else
       print("Warning: cannot find tile file " .. v.image)
     end
 
-    v.num_tile_rows = v.imageheight / v.tileheight
-    v.num_tile_cols = v.imagewidth / v.tilewidth
-    v.num_tiles = v.num_tile_rows * v.num_tile_cols
-    v.lastgid = v.firstgid
-    v.quads = {}
-    local counter = 1
+    local sprite = love.graphics.newSpriteBatch(image, limit, "static")
+    table.insert(tilesets.sprite_batches, sprite)
 
-    for ty = 0, (v.num_tile_rows - 1) do
-      for tx = 0, (v.num_tile_cols - 1) do
-        v.quads[v.firstgid + counter - 1] = love.graphics.newQuad(tx * v.tilewidth, ty * v.tileheight,
-                                                                  v.tilewidth, v.tileheight, v.imagewidth, v.imageheight)
-        tilesets.all_tiles[v.firstgid + counter - 1] = v -- TODO: Need to improve on this.
-        v.lastgid = v.firstgid + counter - 1
-        tx = tx + v.tilewidth
+    local num_tile_rows = (v.imageheight / v.tileheight) - 1
+    local num_tile_cols = (v.imagewidth / v.tilewidth) - 1
+    local counter = 0
+    for ty = 0, num_tile_rows do
+      for tx = 0, num_tile_cols do
+        quad = love.graphics.newQuad(tx * v.tilewidth,
+                                     ty * v.tileheight,
+                                     v.tilewidth,
+                                     v.tileheight,
+                                     v.imagewidth,
+                                     v.imageheight)
+
+        tilesets.sprite_info[v.firstgid + counter] = {
+          width = v.tilewidth,
+          height = v.tileheight,
+          sprite = sprite,
+          quad = quad
+        }
+
         counter = counter + 1
+        tx = tx + v.tilewidth
       end
       ty = ty + v.tileheight
     end
-    --print(" ... [tile #" .. v.firstgid .. " - " .. (v.lastgid) .. "]  DONE!")
   end
-  --print("Done loading tilesets.")
+
+  reload_layer(tilesets)
+
   return tilesets
 end
 
@@ -73,65 +165,30 @@ local function draw_tiles(tilesets, id)
     return
   end
 
+  love.graphics.push()
   local mx, my = layers.background:midpoint()
   local zone_offset = (id * settings.zone_width * settings.tile_width)
   love.graphics.translate(mx, my)
   love.graphics.translate(zone_offset, 0)
+  love.graphics.translate(math.floor(px), math.floor(py))
 
-  for index, layer in ipairs(tilesets.layers) do -- paint tiles layer by layer
-    --print("Painting "..layer.name.." layer")
-    if not layer.visible then
-      local showLayer = settings.show_metadata_layer or false
-      local isMetadata = layer.properties.metadata or false
-
-      if not showLayer then
-        --print("'" .. layer.name .. "' layer is not visible, painting canceled.")
-        break
+  for index, layer in ipairs(tilesets.layers) do
+    if layer.visible then
+      love.graphics.push()
+      love.graphics.translate(layer.x, layer.y)
+      for _, batch in ipairs(tilesets.sprite_batches) do
+        love.graphics.draw(batch, 0, 0)
       end
+      love.graphics.pop()
     end
-
-    local posx = 0
-    local posy = 0
-
-    -- "eat" the rest of the layer data if needed
-    local consume = 0
-    local width = math.min(layer.width, settings.zone_width)
-    local left = math.max(layer.width - settings.zone_width, 0)
-
-    love.graphics.push()
-    love.graphics.translate(layer.x, layer.y)
-
-    for k, v in ipairs(layer.data) do
-      if posx >= width then
-        posx = 0
-        posy = posy + 1
-        consume = left
-      end
-      if posy >= settings.zone_height then
-        break
-      end
-
-      if consume > 0 then
-        consume = consume - 1
-      else
-        local tile_data = tilesets.all_tiles[v]
-        if tile_data ~= nil then
-          local x = posx * tile_data.tilewidth
-          local y = posy * tile_data.tileheight
-          love.graphics.draw(tile_data.tileset, tile_data.quads[v], math.floor(x + px), math.floor(y + py))
-        end
-        posx = posx + 1
-      end
-
-    end
-    love.graphics.pop()
-
   end
+  love.graphics.pop()
 end
 
 glc_tileset = {}
-glc_tileset.load_tiles = load_tiles
+glc_tileset.load_batched_tiles = load_batched_tiles
 glc_tileset.load_metadata = load_metadata
+glc_tileset.toggle_next_layer = toggle_next_layer
 glc_tileset.draw_tiles = draw_tiles
 
 return glc_tileset

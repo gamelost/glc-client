@@ -4,12 +4,13 @@ function init()
   glc_tileset = require("library/tileset")
   tileset = require("assets/zone-test/out-of-farm")
   inspect = require("library/inspect")
-  state.tileset = glc_tileset.load_tiles(tileset)
+  state.tiles = glc_tileset.load_batched_tiles(tileset)
+  state.toggle_next_layer = glc_tileset.toggle_next_layer -- TODO hack
 end
 
 function update()
   local data = state.data or {}
-  glc_tileset.draw_tiles(state.tileset, data.id)
+  glc_tileset.draw_tiles(state.tiles, data.id)
 end
 
 function data(d)
