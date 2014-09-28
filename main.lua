@@ -3,6 +3,7 @@ require "library/fs"
 require "library/json"
 require "library/collision"
 
+_ = require("library/underscore")
 glcd = require("library/glcd")
 layer = require("library/layer")
 console = require("library/console")
@@ -60,14 +61,18 @@ function love.load()
   -- set up layers
   layers = {
     background = layer:new{width = settings.tiles_per_row * settings.tile_width,
-                           height = settings.tiles_per_column * settings.tile_height},
-    splash = layer:new{},
-    console = layer:new{},
-    text = layer:new{},
+                           height = settings.tiles_per_column * settings.tile_height,
+                           priority = 5},
+    parallax = layer:new{priority = 3},
+    splash = layer:new{priority = 1},
+    console = layer:new{priority = 10,
+                        drawable = true},
+    text = layer:new{priority = 9},
   }
 
-  -- the console layer should always be seen.
-  layers.console:activate()
+  -- for ease of use
+  all_layers = _.sort(_.values(layers), function(f, s) return f.priority < s.priority end)
+
 
   -- set up the font
   local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
@@ -202,10 +207,7 @@ end
 -- Where all the drawings happen, also runs continuously.
 function love.draw()
   -- on the start of each frame, clear all layers.
-  layers.splash:clear()
-  layers.background:clear()
-  layers.text:clear()
-  layers.console:clear()
+  _.invoke(all_layers, "clear")
 
   -- draw console layer first.
   layers.console:draw(console.draw)
@@ -232,11 +234,8 @@ function love.draw()
     layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
   end
 
-  -- now render all layers. order matters!
-  layers.splash:render()
-  layers.background:render()
-  layers.text:render()
-  layers.console:render()
+  -- and at the end of the frame, render all layers.
+  _.invoke(all_layers, "render")
 end
 
 function drawPlayerAttributes(name, player)
