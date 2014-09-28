@@ -1,13 +1,13 @@
 local inspect = require("library/inspect")
 
-function onChat(v)
+function onChat(v, m)
   if not v.Sender then
     v.Sender = "ANNOUNCE"
   end
   console.log(v.Sender .. ': ' .. v.Message)
-  if otherPlayers[v.Sender] then
-    otherPlayers[v.Sender].msg = v.Message
-    otherPlayers[v.Sender].msgtime = love.timer.getTime()
+  if otherPlayers[m.ClientId] then
+    otherPlayers[m.ClientId].msg = v.Message
+    otherPlayers[m.ClientId].msgtime = love.timer.getTime()
   end
 end
 
