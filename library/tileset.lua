@@ -1,41 +1,14 @@
 inspect = require("library/inspect")
 
-local function populate_metadata(metas, tileset)
-  for k, tile in ipairs(tileset.tiles) do
-    local i = tileset.firstgid + tile.id
-    metas[i] = {}
-    metas[i].properties = tile.properties
-  end
-end
-
-local function load_metadata(mTilesets)
-  mTilesets.metadatas = {}
-  for k, v in ipairs(mTilesets.tilesets) do
-    if v.properties.metadata then
-      populate_metadata(mTilesets.metadatas, v)
-    end
-  end
-end
-
-local function load_metalayers(mTilesets)
-  -- Save metadata layer in the metadatas table
-  mTilesets.metadatas.layers = {}
-  for _, layer in ipairs(mTilesets.layers) do
-    if layer.properties.metadata then
-      table.insert(mTilesets.metadatas.layers, layer)
-    end
-  end
-end
-
 function reload_layer(tilesets)
   for _, batch in ipairs(tilesets.sprite_batches) do
     batch:clear()
   end
 
-  -- TODO only one layer visible at a time?
   for index, layer in ipairs(tilesets.layers) do
-    if layer.visible then
-      if not string.find(layer.name, "Meta:") and not settings.show_metadata_layer then
+    if layer.visible or layer.properties.visible == "always" then
+      if not layer.properties.metadata and not settings.show_metadata_layer then
+        tilesets.current_layer = layer
         load_layer(layer, tilesets.sprite_info)
       end
     end
@@ -47,7 +20,7 @@ function toggle_next_layer(tilesets)
   local counter = 0
   for index, layer in ipairs(tilesets.layers) do
     counter = counter + 1
-    if layer.visible then
+    if layer.name == tilesets.current_layer.name then
       layer.visible = false
       hit = counter
     end
@@ -55,20 +28,13 @@ function toggle_next_layer(tilesets)
   hit = hit % #tilesets.layers
   counter = 0
   for index, layer in ipairs(tilesets.layers) do
-    -- TODO hack
-    if not string.find(layer.name, "Meta:") then
+    if not layer.properties.metadata then
       if counter == hit then
         layer.visible = true
         break
       end
     end
     counter = counter + 1
-  end
-
-  -- always have the main layer visible.
-  for index, layer in ipairs(tilesets.layers) do
-    layer.visible = true
-    break
   end
 
   reload_layer(tilesets)
@@ -111,9 +77,27 @@ local function load_batched_tiles(tilesets)
 
   tilesets.sprite_info = {}
   tilesets.sprite_batches = {}
+  tilesets.current_layer = nil
 
-  load_metadata(tilesets)
-  load_metalayers(tilesets)
+  -- obtain the metadata tiles and their properties.
+  tilesets.metadata = {}
+  for _, tileset in ipairs(tilesets.tilesets) do
+    if tileset.properties.metadata then
+      for _, tile in ipairs(tileset.tiles) do
+        local i = tileset.firstgid + tile.id
+        tilesets.metadata[i] = {}
+        tilesets.metadata[i].properties = tile.properties
+      end
+    end
+  end
+
+  -- obtain the metadata layer(s) that tell us where the metadata tiles are.
+  tilesets.metadata.layers = {}
+  for _, layer in ipairs(tilesets.layers) do
+    if layer.properties.metadata then
+      table.insert(tilesets.metadata.layers, layer)
+    end
+  end
 
   local limit = tilesets.width * tilesets.height
 
@@ -173,13 +157,10 @@ local function draw_tiles(tilesets, id)
   love.graphics.translate(math.floor(px), math.floor(py))
 
   for index, layer in ipairs(tilesets.layers) do
-    if layer.visible then
-      love.graphics.push()
-      love.graphics.translate(layer.x, layer.y)
+    if layer.visible or layer.properties.visible == "always" then
       for _, batch in ipairs(tilesets.sprite_batches) do
-        love.graphics.draw(batch, 0, 0)
+        love.graphics.draw(batch, layer.x, layer.y)
       end
-      love.graphics.pop()
     end
   end
   love.graphics.pop()
@@ -187,7 +168,6 @@ end
 
 glc_tileset = {}
 glc_tileset.load_batched_tiles = load_batched_tiles
-glc_tileset.load_metadata = load_metadata
 glc_tileset.toggle_next_layer = toggle_next_layer
 glc_tileset.draw_tiles = draw_tiles
 
