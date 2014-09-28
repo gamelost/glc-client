@@ -28,11 +28,11 @@ end
 
 -- Called only once when the game is started.
 function love.load()
-
   math.randomseed(os.time())
 
   -- start communication with the server.
   glcd.init()
+  glcd.setPlayerStatus("ACTIVE")
 
   -- introduction and random quote.
   console.log("** starting game lost crash client")
@@ -107,6 +107,7 @@ function love.load()
   glcd.addHandler("error", handlers.error)
   glcd.addHandler("updateZone", handlers.updateZone)
   glcd.addHandler("playerGone", handlers.playerGone)
+  glcd.addHandler("playerHeartbeat",  handlers.playerHeartbeat)
   glcd.addHandler("playerState", handlers.playerState)
 
   -- Add console handlers.
@@ -417,6 +418,7 @@ end
 
 -- Self-explanatory.
 function love.quit()
+  glcd.setPlayerStatus("QUIT")
 end
 
 function love.threaderror(thread, errorstr)

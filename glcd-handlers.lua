@@ -43,6 +43,18 @@ function onPlayerState(v)
   end
 end
 
+function onPlayerHeartbeat(obj)
+  print("On player heartbeat")
+  if ClientId ~= glcd.clientid then
+    if otherPlayers[obj.ClientId] ~= nil then
+      otherPlayers[obj.ClientId].status = obj.Status
+    end
+    if obj.Status == "QUIT" then
+      otherPlayers[obj.ClientId] = nil
+    end
+  end
+end
+
 function updateZone(z)
   for _, zone in pairs(zones) do
     if zone.name == z.zone then
@@ -61,5 +73,6 @@ return {
   playerGone=onPlayerGone,
   playerState=onPlayerState,
   updateZone=updateZone,
+  playerHeartbeat=onPlayerHeartbeat,
   error=onError
 }

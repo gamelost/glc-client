@@ -49,29 +49,63 @@ function addHandler(command, handler)
   handlers[command] = handler
 end
 
-function send(command, msg)
+function buildMessage(command, msg)
   local val = {
     ClientId = clientid,
     Type = command,
     Data = msg
   }
-  local data = json.encode(val)
+  return json.encode(val)
+end
+
+-- This is only used on quit, to ensure that we send messages before we
+-- actually quit.
+function sendSynchronous(command, msg)
+  local data = buildMessage(command, msg)
+  local pub = NsqHttp:new()
+  pub:publish(settings.nsq_daemon_topic, data)
+end
+
+function send(command, msg)
+  local data = buildMessage(command, msg)
   glcdsend:push(data)
+end
+
+local playerStatus = "OFFLINE"
+
+function sendHeartbeat()
+  local msg = {
+    ClientId = clientid,
+    Timestamp = os.time(),
+    Status = playerStatus
+  }
+
+  if playerStatus == "QUIT" then
+    sendSynchronous('heartbeat', msg)
+  else
+    send('heartbeat', msg)
+  end
+  lastheartbeat = love.timer.getTime()
+end
+
+function setPlayerStatus(newStatus)
+  if playerStatus ~= newStatus then
+    playerStatus = newStatus
+    sendHeartbeat()
+  end
 end
 
 function poll()
   -- heartbeat
   local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then
-    send('heartbeat', { beat = "ba-dum" })
-    lastheartbeat = love.timer.getTime()
+    sendHeartbeat()
   end
 
   -- Incoming
   local incoming = glcdrecv:pop()
   while incoming do
     msg = json.decode(incoming)
-    --print("incoming: " .. inspect(msg))
 
     assert(#msg==0)
 
@@ -86,6 +120,7 @@ return {
   init = init,
   send = send,
   poll = poll,
+  setPlayerStatus = setPlayerStatus,
   addHandler = addHandler,
   clientid = clientid,
   name = playername
