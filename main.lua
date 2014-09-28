@@ -19,6 +19,12 @@ function updateMyState(opts)
   stateChanged = true
 end
 
+function setBulletState(bullet)
+  -- set bullet, containing location, X, and Y
+  myPlayer.bullet = bullet
+  stateChanged = true
+end
+
 function randomQuote()
   local f = io.open("assets/loading/quotes.json", "rb")
   local quotes = json.decode(f:read("*all"))
@@ -41,7 +47,8 @@ function love.load()
   console.show()
 
   myState = {
-    Name = glcd.name
+    Name = glcd.name,
+    direction = "right"
   }
   stateChanged = true
 
@@ -175,19 +182,24 @@ function love.update(dt)
   end
 
   local speed = pSpeed * dt
-  dx = 0
-  dy = 0
+  local dx = 0
+  local dy = 0
+  local direction = "right"
   if love.keyboard.isDown("up") then
     dy = dy + speed
+    direction = "up"
   end
   if love.keyboard.isDown("down") then
     dy = dy - speed
+    direction = "down"
   end
   if love.keyboard.isDown("left") then
     dx = dx + speed
+    direction = "left"
   end
   if love.keyboard.isDown("right") then
     dx = dx - speed
+    direction = "right"
   end
   
   if dy > 0 then
@@ -213,7 +225,7 @@ function love.update(dt)
       px = oldPxy.x
       py = oldPxy.y
     end
-    updateMyState({X = px, Y = py})
+    updateMyState({Y = py, X = px, direction = direction})
   end
 end
 
@@ -245,10 +257,45 @@ function love.draw()
 
     layers.background:draw(drawPlayer, {glcd.name, myPlayer})
     layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
+
+    if myPlayer.bullet then
+      layers.background:draw(drawBullet, {myPlayer.bullet.X, myPlayer.bullet.Y})
+      updateBulletState(myPlayer)
+    end
   end
 
   -- and at the end of the frame, render all layers.
   _.invoke(all_layers, "render")
+end
+
+function updateBulletState(player)
+  local time, direction, startTime, delta, X, Y
+  time = love.timer.getTime()
+  direction = player.bullet.direction or "right"
+  startTime = player.bullet.startTime
+  delta = time - startTime
+  X = player.bullet.X
+  Y = player.bullet.Y
+
+  -- Add check to ensure bullet stops (or bounces) at obstacles and at another
+  -- player.
+
+  -- if bullet hasn't hit an obstacle by the third second, remove bullet.
+  if time > player.bullet.startTime + 2 then
+    player.bullet = nil
+  else
+    -- update bullet X to move to the direction based on time
+    -- uses pSpeed to avoid the bullet being slower than player speed
+    if direction == "right" then
+      player.bullet.X = X - delta * pSpeed
+    elseif direction == "left" then
+      player.bullet.X = X + delta * pSpeed
+    elseif direction == "down" then
+      player.bullet.Y = Y - delta * pSpeed
+    elseif direction == "up" then
+      player.bullet.Y = Y + delta * pSpeed
+    end
+  end
 end
 
 function drawPlayerAttributes(name, player)
@@ -330,6 +377,7 @@ function drawPlayer(name, player)
     stateOffset = 0
   end
 
+  love.graphics.push()
   local mx, my = layers.background:midpoint()
   love.graphics.translate(mx, my)
 
@@ -339,13 +387,24 @@ function drawPlayer(name, player)
 
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
   love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
+  love.graphics.pop()
+end
+
+function drawBullet(X, Y)
+  love.graphics.push()
+  local rpx = math.floor(px - X)
+  local rpy = math.floor(py - Y)
+  local mx, my = layers.background:midpoint()
+  love.graphics.translate(mx, my)
+  love.graphics.translate(rpx, rpy)
+  love.graphics.setColor(127, 127, 127, 255)
+  love.graphics.circle("fill", 0, 0, 2, 10)
+  love.graphics.pop()
 end
 
 -- Avatar related functions
 function setAvatar(file)
-  --print("setAvatar('" .. file .. "')")
   if string.sub(file, -4) == ".png" then
-    --print(" ... loading")
     avatars[file] = love.graphics.newImage(file)
     if defaultAvatar == nil then
       defaultAvatar = avatars[file]
@@ -396,32 +455,68 @@ function love.textinput(text)
   end
 end
 
+function bulletLocation (direction, X, Y)
+  if direction == "left" then
+    return { X = X + 10, Y = Y }
+  elseif direction == "up" then
+    return { X = X, Y = Y + 10 }
+  elseif direction == "down" then
+    return { X = X, Y = Y - 10 }
+  else -- direction will always fire in the right if unset.
+    return { X = X - 10, Y = Y }
+  end
+end
+
+function fireBullet ()
+  print("firing bullet")
+  -- draw a layer containing the bullet and move it?
+  local location = bulletLocation(myState.direction, myState.X, myState.Y)
+  return {
+    direction = myState.direction,
+    X = location.X,
+    Y = location.Y,
+    startTime = love.timer.getTime(),
+  }
+end
+
+-- Game Mode Keys Table
+local game_keys = {
+  tab = function ()
+    console.input.start()
+    keymode = "console"
+  end,
+  v = function ()
+    AvatarId = changeAvatar(AvatarId)
+    updateMyState({AvatarId = AvatarId})
+  end,
+  s = function ()
+    AvatarState = AvatarState + 1
+    if AvatarState > 2 then
+      AvatarState = 0
+    end
+    updateMyState({AvatarState = AvatarState})
+  end,
+  [" "] = function ()
+    setBulletState(fireBullet())
+  end,
+  x = function ()
+    px, py = randomZoneLocation()
+    updateMyState({X = px, Y = py})
+  end,
+  l = function ()
+    local currZoneId, currZoneCoords, currZone = getZoneOffset(px, py)
+    if currZone then
+      currZone.state.toggle_next_layer(currZone.state.tiles)
+    end
+  end,
+}
+
 function love.keypressed(key)
   if key == "escape" then
     love.event.quit()
   end
   if keymode == "game" then
-    if key == "tab" then
-      console.input.start()
-      keymode = "console"
-    elseif key == "v" then
-      AvatarId = changeAvatar(AvatarId)
-      updateMyState({AvatarId = AvatarId})
-    elseif key == "s" then
-      AvatarState = AvatarState + 1
-      if AvatarState > 2 then
-        AvatarState = 0
-      end
-      updateMyState({AvatarState = AvatarState})
-    elseif key == "x" then
-      px, py = randomZoneLocation()
-      updateMyState({X = px, Y = py})
-    elseif key == "l" then
-      local currZoneId, currZoneCoords, currZone = getZoneOffset(px, py)
-      if currZone then
-        currZone.state.toggle_next_layer(currZone.state.tiles)
-      end
-    end
+    return game_keys[key] and game_keys[key]()
   elseif keymode == "console" then
     if key == "tab" then
       console.input.cancel()
