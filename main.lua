@@ -87,8 +87,7 @@ function love.load()
   -- load player asset
   avatars = {}
   traverse("assets/avatars", setAvatar)
-  px = -32
-  py = -32
+
   -- default player speed
   pSpeed = 50
   -- default player avatar
@@ -132,8 +131,10 @@ function love.load()
     zone.init()
   end
 
+  px, py = randomZoneLocation()
+
   glcd.send("connected")
-  updateMyState({Y=px, X=py, AvatarId="assets/avatars/ava1.png", AvatarState=AvatarState})
+  updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
@@ -212,7 +213,7 @@ function love.update(dt)
       px = oldPxy.x
       py = oldPxy.y
     end
-    updateMyState({Y = py, X = px})
+    updateMyState({X = px, Y = py})
   end
 end
 
@@ -412,6 +413,9 @@ function love.keypressed(key)
         AvatarState = 0
       end
       updateMyState({AvatarState = AvatarState})
+    elseif key == "x" then
+      px, py = randomZoneLocation()
+      updateMyState({X = px, Y = py})
     elseif key == "l" then
       local currZoneId, currZoneCoords, currZone = getZoneOffset(px, py)
       if currZone then
