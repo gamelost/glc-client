@@ -17,6 +17,12 @@ function chat(text)
   myPlayer.msgtime = love.timer.getTime()
 end
 
+function onBroadcast(msg)
+  if msg.request == "playerState" then
+    glcd.send("playerState", myState)
+  end
+end
+
 function onPlayerGone(v)
   if v == nil then
     -- error from the server? we shouldn't see this
@@ -47,7 +53,6 @@ function onPlayerState(v)
 end
 
 function onPlayerHeartbeat(obj)
-  print("On player heartbeat")
   if ClientId ~= glcd.clientid then
     if otherPlayers[obj.ClientId] ~= nil then
       otherPlayers[obj.ClientId].status = obj.Status
@@ -77,5 +82,6 @@ return {
   playerState=onPlayerState,
   updateZone=updateZone,
   playerHeartbeat=onPlayerHeartbeat,
+  broadcast=onBroadcast,
   error=onError
 }
