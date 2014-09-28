@@ -120,6 +120,7 @@ function love.load()
   glcd.addHandler("playerGone", handlers.playerGone)
   glcd.addHandler("playerHeartbeat",  handlers.playerHeartbeat)
   glcd.addHandler("playerState", handlers.playerState)
+  glcd.addHandler("broadcast", handlers.broadcast)
 
   -- Add console handlers.
   console.defaultHandler = handlers.sendChat
@@ -141,6 +142,7 @@ function love.load()
   px, py = randomZoneLocation()
 
   glcd.send("connected")
+  glcd.send("broadcast", {request= "playerState"})
   updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
 end
 
