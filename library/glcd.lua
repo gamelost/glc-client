@@ -123,5 +123,6 @@ return {
   setPlayerStatus = setPlayerStatus,
   addHandler = addHandler,
   clientid = clientid,
-  name = playername
+  name = playername,
+  sendSynchronous = sendSynchronous
 }
