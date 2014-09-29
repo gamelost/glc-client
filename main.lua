@@ -17,6 +17,10 @@ function updateMyState(opts)
     myState[k] = v
   end
   myPlayer.state = myState
+  myPlayer.X = myState.X
+  myPlayer.Y = myState.Y
+  myPlayer.direction = myState.direction
+  myPlayer.avatarId = myState.AvatarId
   stateChanged = true
 end
 
@@ -117,7 +121,7 @@ function love.load()
   glcd.addHandler("updateZone", handlers.updateZone)
   glcd.addHandler("playerGone", handlers.playerGone)
   glcd.addHandler("playerHeartbeat",  handlers.playerHeartbeat)
-  glcd.addHandler("playerState", handlers.playerState)
+  glcd.addHandler("otherPlayerState", handlers.otherPlayerState)
   glcd.addHandler("broadcast", handlers.broadcast)
 
   -- Add console handlers.
@@ -140,7 +144,7 @@ function love.load()
   px, py = randomZoneLocation()
 
   glcd.send("connected")
-  glcd.send("broadcast", {request= "playerState"})
+  glcd.send("broadcast", {request= "otherPlayerState"})
   updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
 
   local updateTimer = function()
