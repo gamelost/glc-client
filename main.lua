@@ -535,6 +535,7 @@ local game_keys = {
 
 function love.keypressed(key)
   if key == "escape" then
+    glcd.sendSynchronous("chat", {Sender=glcd.name, Message="Player has left the Game!"})
     love.event.quit()
   end
   if keymode == "game" then
@@ -548,6 +549,7 @@ function love.keypressed(key)
     end
   end
 end
+
 
 -- When user clicks off or on the LOVE window.
 function love.focus(f)
