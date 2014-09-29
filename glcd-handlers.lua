@@ -20,6 +20,8 @@ end
 function onBroadcast(msg)
   if msg.request == "playerState" then
     glcd.send("playerState", myState)
+  elseif msg.request == "fireBullet" then
+    table.insert(bulletList, msg.bullet)
   end
 end
 
