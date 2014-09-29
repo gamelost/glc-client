@@ -19,11 +19,6 @@ function updateMyState(opts)
   stateChanged = true
 end
 
-function setBulletState(bullet)
-  -- insert bullet in bullets table, containing username, location, X, and Y
-  table.insert(bullets, bullet)
-end
-
 function randomQuote()
   local f = io.open("assets/loading/quotes.json", "rb")
   local quotes = json.decode(f:read("*all"))
@@ -103,8 +98,8 @@ function love.load()
   -- initialize other player data
   otherPlayers = {}
 
-  -- initialize bullets
-  bullets = {}
+  -- initialize bulletList
+  bulletList = {}
 
   -- world physics.
   love.physics.setMeter(16)
@@ -264,7 +259,7 @@ function love.draw()
     layers.background:draw(drawPlayer, {glcd.name, myPlayer})
     layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
 
-    for i, bullet in pairs(bullets) do
+    for i, bullet in pairs(bulletList) do
       layers.background:draw(drawBullet, {bullet.X, bullet.Y})
     end
   end
@@ -275,7 +270,7 @@ end
 
 function updateBulletState()
   local time, direction, startTime, delta, X, Y
-  for i, bullet in pairs(bullets) do
+  for i, bullet in pairs(bulletList) do
     time = love.timer.getTime()
     direction = bullet.direction or "right"
     startTime = bullet.startTime
@@ -289,7 +284,7 @@ function updateBulletState()
     -- if bullet hasn't hit an obstacle after two seconds, remove bullet.
     if time > bullet.startTime + 2 then
       print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
-      bullets[i] = nil
+      bulletList[i] = nil
     else
       -- update bullet X to move to the direction based on time
       -- uses pSpeed to avoid the bullet being slower than player speed
@@ -513,7 +508,7 @@ local game_keys = {
     updateMyState({AvatarState = AvatarState})
   end,
   [" "] = function ()
-    setBulletState(fireBullet())
+    table.insert(bulletList, fireBullet())
   end,
   x = function ()
     px, py = randomZoneLocation()
