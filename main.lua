@@ -515,7 +515,7 @@ local game_keys = {
     updateMyState({AvatarState = AvatarState})
   end,
   [" "] = function ()
-    table.insert(bulletList, fireBullet())
+    glcd.send("broadcast", {request = "fireBullet", bullet = fireBullet()})
   end,
   x = function ()
     px, py = randomZoneLocation()
