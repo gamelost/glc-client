@@ -518,6 +518,12 @@ local game_keys = {
       currZone.state.toggle_next_layer(currZone.state.tiles)
     end
   end,
+  p = function()
+    if love.keyboard.isDown("lctrl") then
+      local screenshot = love.graphics.newScreenshot()
+      screenshot:encode("screenshot" .. os.date("%d-%m-%Y-%H-%M-%S") .. ".png")
+    end
+  end,
 }
 
 function love.keypressed(key)
