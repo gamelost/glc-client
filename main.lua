@@ -353,6 +353,9 @@ function drawText(x, y, str, r, g, b)
   love.graphics.pop()
 end
 
+-- make evil monster that shoot fireballs out of mouth.
+
+
 function drawPlayer(name, player)
   local p = player.state
   if not p or not p.X then
@@ -522,6 +525,7 @@ local game_keys = {
 
 function love.keypressed(key)
   if key == "escape" then
+    glcd.send("chat", {Sender=glcd.name, Message="Player has left the Game!"})
     love.event.quit()
   end
   if keymode == "game" then
@@ -535,6 +539,7 @@ function love.keypressed(key)
     end
   end
 end
+
 
 -- When user clicks off or on the LOVE window.
 function love.focus(f)
