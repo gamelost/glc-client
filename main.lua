@@ -20,12 +20,6 @@ function updateMyState(opts)
   stateChanged = true
 end
 
-function setBulletState(bullet)
-  -- set bullet, containing location, X, and Y
-  myPlayer.bullet = bullet
-  stateChanged = true
-end
-
 function randomQuote()
   local f = io.open("assets/loading/quotes.json", "rb")
   local quotes = json.decode(f:read("*all"))
@@ -104,6 +98,9 @@ function love.load()
 
   -- initialize other player data
   otherPlayers = {}
+
+  -- initialize bulletList
+  bulletList = {}
 
   -- world physics.
   love.physics.setMeter(16)
@@ -236,6 +233,8 @@ function love.update(dt)
     end
     updateMyState({X = px, Y = py, direction = direction})
   end
+
+  updateBulletState()
 end
 
 -- Where all the drawings happen, also runs continuously.
@@ -267,9 +266,8 @@ function love.draw()
     layers.background:draw(drawPlayer, {glcd.name, myPlayer})
     layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
 
-    if myPlayer.bullet then
-      layers.background:draw(drawBullet, {myPlayer.bullet.X, myPlayer.bullet.Y})
-      updateBulletState(myPlayer)
+    for i, bullet in pairs(bulletList) do
+      layers.background:draw(drawBullet, {bullet.X, bullet.Y})
     end
   end
 
@@ -277,32 +275,35 @@ function love.draw()
   _.invoke(all_layers, "render")
 end
 
-function updateBulletState(player)
+function updateBulletState()
   local time, direction, startTime, delta, X, Y
-  time = love.timer.getTime()
-  direction = player.bullet.direction or "right"
-  startTime = player.bullet.startTime
-  delta = time - startTime
-  X = player.bullet.X
-  Y = player.bullet.Y
+  for i, bullet in pairs(bulletList) do
+    time = love.timer.getTime()
+    direction = bullet.direction or "right"
+    startTime = bullet.startTime
+    delta = time - startTime
+    X = bullet.X
+    Y = bullet.Y
 
-  -- Add check to ensure bullet stops (or bounces) at obstacles and at another
-  -- player.
+    -- Add check to ensure bullet stops (or bounces) at obstacles and at another
+    -- player.
 
-  -- if bullet hasn't hit an obstacle by the third second, remove bullet.
-  if time > player.bullet.startTime + 2 then
-    player.bullet = nil
-  else
-    -- update bullet X to move to the direction based on time
-    -- uses pSpeed to avoid the bullet being slower than player speed
-    if direction == "right" then
-      player.bullet.X = X - delta * pSpeed
-    elseif direction == "left" then
-      player.bullet.X = X + delta * pSpeed
-    elseif direction == "down" then
-      player.bullet.Y = Y - delta * pSpeed
-    elseif direction == "up" then
-      player.bullet.Y = Y + delta * pSpeed
+    -- if bullet hasn't hit an obstacle after two seconds, remove bullet.
+    if time > bullet.startTime + 2 then
+      print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
+      bulletList[i] = nil
+    else
+      -- update bullet X to move to the direction based on time
+      -- uses pSpeed to avoid the bullet being slower than player speed
+      if direction == "right" then
+        bullet.X = X - delta * pSpeed
+      elseif direction == "left" then
+        bullet.X = X + delta * pSpeed
+      elseif direction == "down" then
+        bullet.Y = Y - delta * pSpeed
+      elseif direction == "up" then
+        bullet.Y = Y + delta * pSpeed
+      end
     end
   end
 end
@@ -413,7 +414,7 @@ function drawBullet(X, Y)
   local mx, my = layers.background:midpoint()
   love.graphics.translate(mx, my)
   love.graphics.translate(rpx, rpy)
-  love.graphics.setColor(127, 127, 127, 255)
+  love.graphics.setColor(0, 0, 0, 255)
   love.graphics.circle("fill", 0, 0, 2, 10)
   love.graphics.pop()
 end
@@ -488,6 +489,7 @@ function fireBullet ()
   -- draw a layer containing the bullet and move it?
   local location = bulletLocation(myState.direction, myState.X, myState.Y)
   return {
+    name = myPlayer.name,
     direction = myState.direction,
     X = location.X,
     Y = location.Y,
@@ -513,7 +515,7 @@ local game_keys = {
     updateMyState({AvatarState = AvatarState})
   end,
   [" "] = function ()
-    setBulletState(fireBullet())
+    table.insert(bulletList, fireBullet())
   end,
   x = function ()
     px, py = randomZoneLocation()
