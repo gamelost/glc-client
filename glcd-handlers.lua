@@ -34,7 +34,7 @@ function onPlayerGone(v)
   end
 end
 
-function onOtherPlayerState(v)
+function onPlayerState(v)
   -- testing
   local clientid = v.ClientId
   if clientid == nil then
@@ -81,7 +81,7 @@ return {
   sendChat=chat,
   chat=onChat,
   playerGone=onPlayerGone,
-  otherPlayerState=onOtherPlayerState,
+  playerState=onPlayerState,
   updateZone=updateZone,
   playerHeartbeat=onPlayerHeartbeat,
   broadcast=onBroadcast,
