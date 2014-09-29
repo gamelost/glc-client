@@ -207,13 +207,13 @@ function love.update(dt)
     dx = dx - speed
     direction = "right"
   end
-  
+
   if dy > 0 then
     dy = math.ceil(dy)
   elseif dy < 0 then
     dy = math.floor(dy)
   end
-  
+
   if dx > 0 then
     dx = math.ceil(dx)
   elseif dx < 0 then
@@ -304,6 +304,11 @@ function updateBulletState()
       elseif direction == "up" then
         bullet.Y = Y + delta * pSpeed
       end
+    end
+
+    local currZoneId, currZoneCoords, currZone  = getZoneOffset(bullet.X, bullet.Y)
+    if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
+      bulletList[i] = nil
     end
   end
 end
