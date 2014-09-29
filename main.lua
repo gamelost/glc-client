@@ -17,10 +17,6 @@ function updateMyState(opts)
     myState[k] = v
   end
   myPlayer.state = myState
-  myPlayer.X = myState.X
-  myPlayer.Y = myState.Y
-  myPlayer.direction = myState.direction
-  myPlayer.avatarId = myState.AvatarId
   stateChanged = true
 end
 
@@ -51,9 +47,16 @@ function love.load()
   }
   stateChanged = true
 
+  killVerbs = {"killed", "murdered", "tickled", "molested", "tea bagged", "vomited on", "creamed", "your-mom-ed"}
+
   myPlayer = {
     state = myState,
-    name = glcd.name
+    name = glcd.name,
+    height = 16,
+    width = 16,
+    radius_w = 8,
+    radius_h = 8,
+    hitPoint = 1,
   }
 
   defaultAvatar = nil
@@ -224,21 +227,60 @@ function love.update(dt)
     dx = math.floor(dx)
   end
 
+  local playerCoords = {
+    x = (px),
+    y = (py),
+    radius_h = myPlayer.radius_h,
+    radius_w = myPlayer.radius_w,
+    direction = direction,
+    name = myPlayer.name,
+  }
+
   if dx ~= 0 or dy ~= 0 then
     local oldPxy = {x = px, y = py}
     py = py + dy
     px = px + dx
-    playerCoords = {x = (px), y = (py)}
+    -- TODO: need to put 'px' and 'py' into myPlayer and then use myPlayer for all player states.
+    playerCoords.x = px
+    playerCoords.y = py
+
     local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+
     if hasCollision(zones[currZoneId], playerCoords.x, playerCoords.y) then
       -- revert to old coordinates
-      px = oldPxy.x
-      py = oldPxy.y
+      playerCoords.x = oldPxy.x
+      playerCoords.y = oldPxy.y
     end
+
+    for _, otherPlayer in ipairs(otherPlayers) do
+      if playerBumpedIntoAnotherPlayer(playerCoords, otherPlayer) then
+        -- revert to old coordinates
+        playerCoords.x = oldPxy.x
+        playerCoords.y = oldPxy.y
+      end
+    end
+
+    px = playerCoords.x
+    py = playerCoords.y
     updateMyState({X = px, Y = py, direction = direction})
   end
 
   updateBulletState()
+  
+  for _, bullet in ipairs(bulletList) do
+    if isPlayerHitByBullet(playerCoords, bullet) then
+      myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
+
+      if myPlayer.hitPoint <= 0 then
+        local randomVerb = word[math.random(1, #killVerbs)]
+        local killString = (myPlayer.name .. " was " .. randomVerb .. "by " .. bullet.name)
+        print(killString)
+        glcd.send("playerDeath", {Sender=glcd.name, Message=killString})
+      else
+        print(myPlayer.name .. " was hit by " .. bullet.name)
+      end
+    end
+  end
 end
 
 -- Where all the drawings happen, also runs continuously.
