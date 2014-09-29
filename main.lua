@@ -4,6 +4,7 @@ require "library/json"
 require "library/collision"
 
 _ = require("library/underscore")
+clock = require("library/clock")
 glcd = require("library/glcd")
 layer = require("library/layer")
 console = require("library/console")
@@ -144,19 +145,25 @@ function love.load()
   glcd.send("connected")
   glcd.send("broadcast", {request= "playerState"})
   updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
+
+  local updateTimer = function()
+    if stateChanged then
+      glcd.send("playerState", myState)
+      stateChanged = false
+    end
+  end
+  -- 20 times per second.
+  clock.every(1/20, updateTimer, "updateState")
 end
 
 -- runs a set amount (`updateFixedInterval`) per second.
 function love.fixed(dt)
-  if stateChanged then
-    glcd.send("playerState", myState)
-    stateChanged = false
-  end
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
+  clock.update(dt)
   world:update(dt)
 
   -- set a fixed interval so that we can update `updateFrequency`
