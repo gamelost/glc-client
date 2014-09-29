@@ -254,6 +254,7 @@ function love.update(dt)
     end
 
     for name, otherPlaya in pairs(otherPlayers) do
+      -- UGLY piece of shit hack.
       print(otherPlaya.name .. ": {" .. otherPlaya.state.X .. "," .. otherPlaya.state.Y .. "}")
       otherPlaya.state['radius_w'] = myPlayer.radius_w
       otherPlaya.state['radius_h'] = myPlayer.radius_h
