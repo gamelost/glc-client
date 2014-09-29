@@ -231,6 +231,8 @@ function love.update(dt)
     end
     updateMyState({X = px, Y = py, direction = direction})
   end
+
+  updateBulletState()
 end
 
 -- Where all the drawings happen, also runs continuously.
@@ -264,7 +266,6 @@ function love.draw()
 
     for i, bullet in pairs(bullets) do
       layers.background:draw(drawBullet, {bullet.X, bullet.Y})
-      updateBulletState(i)
     end
   end
 
@@ -272,34 +273,35 @@ function love.draw()
   _.invoke(all_layers, "render")
 end
 
-function updateBulletState(i)
-  local bullet, time, direction, startTime, delta, X, Y
-  bullet = bullets[i]
-  time = love.timer.getTime()
-  direction = bullet.direction or "right"
-  startTime = bullet.startTime
-  delta = time - startTime
-  X = bullet.X
-  Y = bullet.Y
+function updateBulletState()
+  local time, direction, startTime, delta, X, Y
+  for i, bullet in pairs(bullets) do
+    time = love.timer.getTime()
+    direction = bullet.direction or "right"
+    startTime = bullet.startTime
+    delta = time - startTime
+    X = bullet.X
+    Y = bullet.Y
 
-  -- Add check to ensure bullet stops (or bounces) at obstacles and at another
-  -- player.
+    -- Add check to ensure bullet stops (or bounces) at obstacles and at another
+    -- player.
 
-  -- if bullet hasn't hit an obstacle by the third second, remove bullet.
-  if time > bullet.startTime + 2 then
-    print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
-    bullets[i] = nil
-  else
-    -- update bullet X to move to the direction based on time
-    -- uses pSpeed to avoid the bullet being slower than player speed
-    if direction == "right" then
-      bullet.X = X - delta * pSpeed
-    elseif direction == "left" then
-      bullet.X = X + delta * pSpeed
-    elseif direction == "down" then
-      bullet.Y = Y - delta * pSpeed
-    elseif direction == "up" then
-      bullet.Y = Y + delta * pSpeed
+    -- if bullet hasn't hit an obstacle after two seconds, remove bullet.
+    if time > bullet.startTime + 2 then
+      print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
+      bullets[i] = nil
+    else
+      -- update bullet X to move to the direction based on time
+      -- uses pSpeed to avoid the bullet being slower than player speed
+      if direction == "right" then
+        bullet.X = X - delta * pSpeed
+      elseif direction == "left" then
+        bullet.X = X + delta * pSpeed
+      elseif direction == "down" then
+        bullet.Y = Y - delta * pSpeed
+      elseif direction == "up" then
+        bullet.Y = Y + delta * pSpeed
+      end
     end
   end
 end
