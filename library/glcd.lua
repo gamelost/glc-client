@@ -30,6 +30,10 @@ end
 local clientid = createClientID()
 
 function init()
+  -- create the topics if they do not exist. we need this for e.g.,
+  -- local setup.
+  NsqHttp:createTopic(settings.nsq_gamestate_topic)
+  NsqHttp:createTopic(settings.nsq_daemon_topic)
   -- empty the channel, otherwise we may get notifications from stale
   -- events. these functions are blocking.
   NsqHttp:createChannel(settings.nsq_gamestate_topic, clientid)
