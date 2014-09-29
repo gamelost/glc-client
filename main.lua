@@ -353,9 +353,6 @@ function drawText(x, y, str, r, g, b)
   love.graphics.pop()
 end
 
--- make evil monster that shoot fireballs out of mouth.
-
-
 function drawPlayer(name, player)
   local p = player.state
   if not p or not p.X then
