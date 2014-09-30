@@ -62,6 +62,24 @@ __Windows__:
 
 There is no official support as of yet, although there is no particular reason why running under Windows should not work. If you want to champion Windows platform support, drop us a line!
 
+Keyboard Shortcuts
+==================
+
+Use arrow keys for navigation.
+
+* `<Esc>` Quit game
+* `<Tab>` Enter/Exit console mode to chat with other players
+* `<V>` Change avatar
+* `<S>` Change avatar state
+* `<Space>` Fire bullet
+* `<X>` Jump to a random zone location
+* `<L>` Toggle through diferent layer of tilesets
+* `<Lctrl-p>` Take a screenshot. It will be saved in either
+  `$XDG_DATA_HOME/love/` (or `$HOME/.local/share/love/`) for Linux or
+  `$HOME/Library/Application Support/LOVE/` for Mac. (See
+  [love.filesystem](http://love2d.org/wiki/love.filesystem) for more
+  information.)
+
 Screenshots
 ===========
 
