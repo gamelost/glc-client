@@ -72,6 +72,27 @@ function getZoneOffset(wx, wy)
   return zIndex, zpoint, mZone
 end
 
+function isPlayerHitByBullet(player, bullet)
+  print("Player '" .. player.name .. "': {X=" .. player.x .. ",Y=" .. player.y .. "}")
+  print("Bullet from '" .. bullet.name .. "': {X=" .. bullet.X .. ",Y=" .. bullet.Y .. "}")
+
+  if (bullet.X >= (player.x - player.radius_w) and
+      bullet.X <= (player.x + player.radius_w) and
+      bullet.Y >= (player.y - player.radius_h) and
+      bullet.Y <= (player.y + player.radius_h)) then
+    return true
+  end
+  return false
+end
+
+function didPlayerBumpedIntoOtherPlayer(player, otherPlayer)
+  if math.abs((player.x - player.radius_w) - (otherPlayer.X - otherPlayer.radius_w)) * 2 < (player.width + otherPlayer.width) and
+      math.abs((player.y - player.radius_h) - (otherPlayer.Y - otherPlayer.radius_h)) * 2 < (player.height + otherPlayer.height) then
+    return true
+  end
+  return false
+end
+
 function hasCollision(mZone, x, y)
   local isCollidable = false
 

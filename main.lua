@@ -47,9 +47,16 @@ function love.load()
   }
   stateChanged = true
 
+  killVerbs = {"killed", "murdered", "tickled", "molested", "tea bagged", "vomited on", "creamed", "your-mom-ed"}
+
   myPlayer = {
     state = myState,
-    name = glcd.name
+    name = glcd.name,
+    height = 16,
+    width = 16,
+    radius_w = 8,
+    radius_h = 8,
+    hitPoint = 1,
   }
 
   defaultAvatar = nil
@@ -220,21 +227,74 @@ function love.update(dt)
     dx = math.floor(dx)
   end
 
+  local playerCoords = {
+    x = (px),
+    y = (py),
+    radius_h = myPlayer.radius_h,
+    radius_w = myPlayer.radius_w,
+    direction = direction,
+    name = myPlayer.name,
+    width = myPlayer.width,
+    height = myPlayer.height,
+  }
+
   if dx ~= 0 or dy ~= 0 then
     local oldPxy = {x = px, y = py}
     py = py + dy
     px = px + dx
-    playerCoords = {x = (px), y = (py)}
+    -- TODO: need to put 'px' and 'py' into myPlayer and then use myPlayer for all player states.
+    playerCoords.x = px
+    playerCoords.y = py
+
     local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
     if hasCollision(zones[currZoneId], playerCoords.x, playerCoords.y) then
       -- revert to old coordinates
-      px = oldPxy.x
-      py = oldPxy.y
+      playerCoords.x = oldPxy.x
+      playerCoords.y = oldPxy.y
     end
+
+    for name, otherPlaya in pairs(otherPlayers) do
+      -- UGLY piece of shit hack.
+      print(otherPlaya.name .. ": {" .. otherPlaya.state.X .. "," .. otherPlaya.state.Y .. "}")
+      otherPlaya.state['radius_w'] = myPlayer.radius_w
+      otherPlaya.state['radius_h'] = myPlayer.radius_h
+      otherPlaya.state['width'] = myPlayer.width
+      otherPlaya.state['height'] = myPlayer.height
+      if didPlayerBumpedIntoOtherPlayer(playerCoords, otherPlaya.state) then
+        -- revert to old coordinates
+        playerCoords.x = oldPxy.x
+        playerCoords.y = oldPxy.y
+      end
+    end
+
+    px = playerCoords.x
+    py = playerCoords.y
     updateMyState({X = px, Y = py, direction = direction})
   end
 
   updateBulletState()
+  
+  for _, bullet in ipairs(bulletList) do
+    print(bullet.name .. "'s bullet is at " .. bullet.X .. "," .. bullet.Y)
+    if isPlayerHitByBullet(playerCoords, bullet) then
+      myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
+
+      local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+      if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
+        bulletList[i] = nil
+      end
+
+      if myPlayer.hitPoint <= 0 then
+        local randomVerb = killVerbs[math.random(1, #killVerbs)]
+        local killString = (myPlayer.name .. " was " .. randomVerb .. " by " .. bullet.name)
+        print(killString)
+        -- TODO: Need a way to send a system event instead.
+        glcd.send("chat", {Sender=glcd.name, Message=killString})
+      else
+        print(myPlayer.name .. " was hit by " .. bullet.name)
+      end
+    end
+  end
 end
 
 -- Where all the drawings happen, also runs continuously.
@@ -498,6 +558,7 @@ function fireBullet ()
     direction = myState.direction,
     X = location.X,
     Y = location.Y,
+    damage = 1,
     startTime = love.timer.getTime(),
   }
 end
