@@ -311,10 +311,17 @@ function love.draw()
     layers.splash:background(255, 255, 255, 0)
   else
 
-    -- set layer transform coordinates. we do this so that we can have
-    -- our avatar in the middle of the screen.
+    -- set background layer transform coordinates. we do this so that
+    -- we can have our avatar in the middle of the screen.
     local mx, my = layers.background:midpoint()
-    layers.background:translate(mx - myPlayer.state.X, my - myPlayer.state.Y)
+    local bx = mx - myPlayer.state.X
+    local by = my - myPlayer.state.Y
+    layers.background:translate(bx, by)
+
+    -- similarly with text, but in terms of the background coordinate
+    -- system since it's scaled up.
+    local rx, ry = layers.background:coordinates(bx, by)
+    layers.text:translate(rx, ry)
 
     -- draw zones
     if #zones == 0 then
@@ -385,18 +392,16 @@ function drawPlayerAttributes(name, player)
   if not p or not p.X then
     return
   end
-  local rpx = math.floor(px - p.X)
-  local rpy = math.floor(py - p.Y)
   if p == myState then
-    drawText(rpx, rpy - 12, name, 255, 255, 255)
+    drawText(p.X, p.Y - 12, name, 255, 255, 255)
   else
-    drawText(rpx, rpy - 12, name, 0, 255, 128)
+    drawText(p.x, p.Y - 12, name, 0, 255, 128)
   end
 
   -- Text shows for 5 seconds.
   local exp = love.timer.getTime() - 3
   if player.msg and player.msgtime > exp then
-    drawText(rpx, rpy - 25, player.msg, 0, 255, 255)
+    drawText(p.X, p.Y - 25, player.msg, 0, 255, 255)
   end
 end
 
@@ -406,9 +411,7 @@ function drawText(x, y, str, r, g, b)
   -- Draw Name
   local MAX_WIDTH_OF_TEXT = 200
   local str_offset = MAX_WIDTH_OF_TEXT / 2
-
-  local mx, my = layers.background:midpoint()
-  local rx, ry = layers.background:coordinates(mx + x, my + y)
+  local rx, ry = layers.background:coordinates(x, y)
 
   love.graphics.push()
   love.graphics.translate(rx, ry)
