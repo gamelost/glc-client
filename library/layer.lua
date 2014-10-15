@@ -56,8 +56,8 @@ function Layer:render()
 end
 
 function Layer:translate(x, y)
-  self.tx = x
-  self.ty = y
+  self.tx = x or 0
+  self.ty = y or 0
 end
 
 -- Given a canvas and a function that does graphical operations, make

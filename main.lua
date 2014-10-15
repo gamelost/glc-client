@@ -372,13 +372,13 @@ end
 
 function drawPlayerAttributes(name, player)
   local p = player.state
-  if not p or not p.X then
+  if not p or not p.X or not p.Y then
     return
   end
   if p == myState then
     drawText(p.X, p.Y - 12, name, 255, 255, 255)
   else
-    drawText(p.x, p.Y - 12, name, 0, 255, 128)
+    drawText(p.X, p.Y - 12, name, 0, 255, 128)
   end
 
   -- Text shows for 3 seconds.
