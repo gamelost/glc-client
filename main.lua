@@ -63,9 +63,6 @@ function love.load()
 
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
-  updateFrequency = 10 -- times per second
-  updateFixedInterval = 1.0 / updateFrequency
-  timeAccum = 0.0
 
   -- set up layers
   layers = {
@@ -82,7 +79,6 @@ function love.load()
   -- for ease of use
   all_layers = _.sort(_.values(layers), function(f, s) return f.priority < s.priority end)
 
-
   -- set up the font
   local font = love.graphics.newFont("assets/Krungthep.ttf", 14)
   love.graphics.setFont(font)
@@ -90,8 +86,21 @@ function love.load()
   -- load the splash screen
   splash = true
   splash_screen.load()
-  splash_time = love.timer.getTime()
   layers.splash:activate()
+
+  -- set up splash screen to display for one second.
+  local splash_cb = function()
+    splash = false
+    -- swap layers.
+    layers.splash:deactivate()
+    layers.background:activate()
+    layers.text:activate()
+    clock.cancel("updateSplash")
+    -- send message to everyone!
+    glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
+  end
+  clock.schedule(1, splash_cb, "setSplash")
+  clock.every(1/16, splash_screen.update, "updateSplash")
 
   -- load player asset
   avatars = {}
@@ -160,39 +169,13 @@ function love.load()
   clock.every(1/20, updateTimer, "updateState")
 end
 
--- runs a set amount (`updateFixedInterval`) per second.
-function love.fixed(dt)
-end
-
 -- Runs continuously. Good idea to put all the computations here. 'dt'
 -- is the time difference since the last update.
 function love.update(dt)
-  clock.update(dt)
+  clock.update()
   world:update(dt)
 
-  -- set a fixed interval so that we can update `updateFrequency`
-  -- times per second. TODO: this is probably not accurate for low fps
-  -- clients.
-  timeAccum = timeAccum + dt
-  if timeAccum > updateFixedInterval then
-    love.fixed(timeAccum)
-    timeAccum = timeAccum - updateFixedInterval
-  end
-
   glcd.poll()
-  if splash then
-    elapsed = love.timer.getTime() - splash_time
-    splash_screen.update(elapsed)
-    if elapsed > 1.0 then
-      splash = false
-      -- swap layers.
-      layers.splash:deactivate()
-      layers.background:activate()
-      layers.text:activate()
-      -- send message to everyone!
-      glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
-    end
-  end
 
   local speed = pSpeed * dt
   local dx = 0
@@ -398,7 +381,7 @@ function drawPlayerAttributes(name, player)
     drawText(p.x, p.Y - 12, name, 0, 255, 128)
   end
 
-  -- Text shows for 5 seconds.
+  -- Text shows for 3 seconds.
   local exp = love.timer.getTime() - 3
   if player.msg and player.msgtime > exp then
     drawText(p.X, p.Y - 25, player.msg, 0, 255, 255)

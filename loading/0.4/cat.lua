@@ -48,18 +48,10 @@ function cat_load()
   -- store dimensions
   glc_w, glc_h = current_frame:getDimensions()
   width, height = love.graphics.getDimensions()
-
-  -- track time
-  latest = 0.0
 end
 
-function cat_update(dt)
-  -- TODO: can be converted to fixed time step function.
-  local animation_step = dt - latest
-  if animation_step > 0.06 then
-    latest = dt
-    current_frame = cat_frames()
-  end
+function cat_update()
+  current_frame = cat_frames()
 end
 
 function cat_draw()

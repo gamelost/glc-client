@@ -21,11 +21,18 @@ local function runTimers(now)
           nextTimer = v.time
         end
       end
+    else
+      -- make sure that slower-speed timers keep on ticking. probably
+      -- best to have a priority queue here.
+      local nextInterval = v.time - now
+      if nextInterval < nextTimer then
+        nextTimer = v.time
+      end
     end
   end
 end
 
-local function update(dt)
+local function update()
   local now = love.timer.getTime()
   if nextTimer and nextTimer <= now then
     runTimers(now)
@@ -57,7 +64,7 @@ end
 local function every(secs, cb, name)
   assert(name)
   local t = {
-    time = love.timer.getTime() + secs,
+    time = love.timer.getTime(), -- start an iteration now
     cb = cb,
     step = secs,
     freq = -1,
@@ -74,5 +81,5 @@ return {
   update = update,
   schedule = schedule,
   every = every,
-  stop = stop
+  cancel = cancel
 }
