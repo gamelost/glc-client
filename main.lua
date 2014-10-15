@@ -363,13 +363,13 @@ function updateBulletState()
       -- update bullet X to move to the direction based on time
       -- uses pSpeed to avoid the bullet being slower than player speed
       if direction == "right" then
-        bullet.X = X - delta * pSpeed
-      elseif direction == "left" then
         bullet.X = X + delta * pSpeed
+      elseif direction == "left" then
+        bullet.X = X - delta * pSpeed
       elseif direction == "down" then
-        bullet.Y = Y - delta * pSpeed
-      elseif direction == "up" then
         bullet.Y = Y + delta * pSpeed
+      elseif direction == "up" then
+        bullet.Y = Y - delta * pSpeed
       end
     end
 
@@ -535,7 +535,7 @@ function love.textinput(text)
   end
 end
 
-function bulletLocation (direction, X, Y)
+function bulletLocation(direction, X, Y)
   if direction == "left" then
     return { X = X + 10, Y = Y }
   elseif direction == "up" then
@@ -547,7 +547,7 @@ function bulletLocation (direction, X, Y)
   end
 end
 
-function fireBullet ()
+function fireBullet()
   print("firing bullet")
   -- draw a layer containing the bullet and move it?
   local location = bulletLocation(myState.direction, myState.X, myState.Y)
