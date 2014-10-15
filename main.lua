@@ -199,20 +199,20 @@ function love.update(dt)
   local dy = 0
   local direction = "right"
   if love.keyboard.isDown("up") then
-    dy = dy + speed
+    dy = dy - speed
     direction = "up"
   end
   if love.keyboard.isDown("down") then
-    dy = dy - speed
+    dy = dy + speed
     direction = "down"
   end
-  if love.keyboard.isDown("left") then
-    dx = dx + speed
-    direction = "left"
-  end
   if love.keyboard.isDown("right") then
-    dx = dx - speed
+    dx = dx + speed
     direction = "right"
+  end
+  if love.keyboard.isDown("left") then
+    dx = dx - speed
+    direction = "left"
   end
 
   if dy > 0 then
@@ -246,7 +246,8 @@ function love.update(dt)
     playerCoords.x = px
     playerCoords.y = py
 
-    local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+    local currZoneId, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+
     if hasCollision(zones[currZoneId], playerCoords.x, playerCoords.y) then
       -- revert to old coordinates
       playerCoords.x = oldPxy.x
@@ -273,13 +274,13 @@ function love.update(dt)
   end
 
   updateBulletState()
-  
+
   for _, bullet in ipairs(bulletList) do
     print(bullet.name .. "'s bullet is at " .. bullet.X .. "," .. bullet.Y)
     if isPlayerHitByBullet(playerCoords, bullet) then
       myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
 
-      local currZoneId, currZoneCoords, currZone  = getZoneOffset(playerCoords.x, playerCoords.y)
+      local currZoneId, currZone = getZoneOffset(playerCoords.x, playerCoords.y)
       if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
         bulletList[i] = nil
       end
@@ -366,7 +367,7 @@ function updateBulletState()
       end
     end
 
-    local currZoneId, currZoneCoords, currZone  = getZoneOffset(bullet.X, bullet.Y)
+    local currZoneId, currZone = getZoneOffset(bullet.X, bullet.Y)
     if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
       bulletList[i] = nil
     end
@@ -588,7 +589,7 @@ local game_keys = {
     updateMyState({X = px, Y = py})
   end,
   l = function ()
-    local currZoneId, currZoneCoords, currZone = getZoneOffset(px, py)
+    local currZoneId, currZone = getZoneOffset(px, py)
     if currZone then
       currZone.state.toggle_next_layer(currZone.state.tiles)
     end

@@ -154,7 +154,8 @@ local function draw_tiles(tilesets, id)
   local zone_offset = (id * settings.zone_width * settings.tile_width)
   love.graphics.translate(mx, my)
   love.graphics.translate(zone_offset, 0)
-  love.graphics.translate(math.floor(px), math.floor(py))
+
+  love.graphics.translate(-px, -py)
 
   for index, layer in ipairs(tilesets.layers) do
     if layer.visible or layer.properties.visible == "always" then

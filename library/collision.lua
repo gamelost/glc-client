@@ -7,10 +7,9 @@ function randomZoneLocation()
   local x = 0
   local y = 0
 
-  --for i = 1, 10000000 do
-  while true do
-    x = - math.random(1, settings.zone_width * settings.tile_width)
-    y = - math.random(1, settings.zone_width * settings.tile_width)
+  for i = 1, 100 do
+    x = math.random(1, settings.zone_width * settings.tile_width)
+    y = math.random(1, settings.zone_width * settings.tile_width)
 
     -- test for collisions
     successful = not (hasCollision(this_zone, x, y) or
@@ -24,8 +23,8 @@ function randomZoneLocation()
   end
 
   if not successful then
-    x = -32
-    y = -32
+    x = 32
+    y = 32
   end
 
   return x, y
@@ -34,9 +33,8 @@ end
 -- Get current zone.
 --  wx - number: World x-coordinate.
 --  wy - number: World y-coordinate.
---  return - zone offset number, its transformed coordinates, and the selected zone object itself.
+--  return - zone offset number and the selected zone object itself.
 function getZoneOffset(wx, wy)
-  local zpoint = nil
   local zIndex = nil
   local mZone = nil
   local xOffset = 0
@@ -49,16 +47,14 @@ function getZoneOffset(wx, wy)
   for idx = 1, #zones do
     if zones[idx].state.data then
       local zId = zones[idx].state.data.id
-      -- local zoneWidth = zone.state.tileset.width * zone.state.tileset.tilewidth
-      local wxMin = -1 * zId *  zoneWidth
-      local wyMin = -1 * zId
-      local wxMax = wxMin - zoneWidth
-      local wyMax = wyMin - zoneHeight
+      local wxMin = zId *  zoneWidth
+      local wyMin = zId
+      local wxMax = wxMin + zoneWidth
+      local wyMax = wyMin + zoneHeight
       --print(string.format("getZoneOffset: idx=%d, wxy=(%d,%d), zId=%d, zoneDimen=(%d,%d), wxyMin=(%d,%d), wxyMax=(%d,%d)", idx, wx, wy, zId, zoneWidth, zoneHeight, wxMin, wyMin, wxMax, wyMax))
 
-      if wx <= wxMin and wx >= wxMax and wy <= wyMin and wy >= wyMax then
-        --print("getZoneOffset: Found! zId=", zId)
-        zpoint = {x = zId * wx, y = wy}
+      if wx >= wxMin and wx <= wxMax and wy >= wyMin and wy <= wyMax then
+        -- print("getZoneOffset: Found! zId=", zId)
         zIndex = idx;
         mZone = zones[idx]
         break
@@ -69,7 +65,7 @@ function getZoneOffset(wx, wy)
       idx = idx + 1
     end
   end
-  return zIndex, zpoint, mZone
+  return zIndex, mZone
 end
 
 function isPlayerHitByBullet(player, bullet)
@@ -113,11 +109,6 @@ function hasCollision(mZone, x, y)
         end
       end
     end
-
-    local tileId = 0
-
-    x = math.abs(x)
-    y = math.abs(y)
 
     -- use 'settings' global variable for now.
     local gridx = math.ceil(x / settings.tile_width)
