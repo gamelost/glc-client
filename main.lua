@@ -310,6 +310,12 @@ function love.draw()
     layers.splash:draw(splash_screen.draw)
     layers.splash:background(255, 255, 255, 0)
   else
+
+    -- set layer transform coordinates. we do this so that we can have
+    -- our avatar in the middle of the screen.
+    local mx, my = layers.background:midpoint()
+    layers.background:translate(mx - myPlayer.state.X, my - myPlayer.state.Y)
+
     -- draw zones
     if #zones == 0 then
       console.log("No zones found.")
@@ -429,7 +435,7 @@ end
 
 function drawPlayer(name, player)
   local p = player.state
-  if not p or not p.X then
+  if not p or not p.X or not p.Y then
     return
   end
   local frame = math.floor(love.timer.getTime() * 3) % 2
@@ -454,12 +460,7 @@ function drawPlayer(name, player)
   end
 
   love.graphics.push()
-  local mx, my = layers.background:midpoint()
-  love.graphics.translate(mx, my)
-
-  local rpx = math.floor(px - p.X)
-  local rpy = math.floor(py - p.Y)
-  love.graphics.translate(rpx, rpy)
+  love.graphics.translate(p.X, p.Y)
 
   local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
 
@@ -473,13 +474,9 @@ function drawPlayer(name, player)
   love.graphics.pop()
 end
 
-function drawBullet(X, Y)
+function drawBullet(x, y)
   love.graphics.push()
-  local rpx = math.floor(px - X)
-  local rpy = math.floor(py - Y)
-  local mx, my = layers.background:midpoint()
-  love.graphics.translate(mx, my)
-  love.graphics.translate(rpx, rpy)
+  love.graphics.translate(x, y)
   love.graphics.setColor(0, 0, 0, 255)
   love.graphics.circle("fill", 0, 0, 2, 10)
   love.graphics.pop()
@@ -618,7 +615,6 @@ function love.keypressed(key)
     end
   end
 end
-
 
 -- When user clicks off or on the LOVE window.
 function love.focus(f)

@@ -150,12 +150,8 @@ local function draw_tiles(tilesets, id)
   end
 
   love.graphics.push()
-  local mx, my = layers.background:midpoint()
   local zone_offset = (id * settings.zone_width * settings.tile_width)
-  love.graphics.translate(mx, my)
   love.graphics.translate(zone_offset, 0)
-
-  love.graphics.translate(-px, -py)
 
   for index, layer in ipairs(tilesets.layers) do
     if layer.visible or layer.properties.visible == "always" then

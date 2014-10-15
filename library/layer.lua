@@ -15,6 +15,8 @@ function Layer:new(args)
   self.sy = win.height / self.height
   self.drawable = args.drawable or false
   self.priority = args.priority or 10 -- default to last
+  self.tx = 0
+  self.ty = 0
 
   -- set up the canvas. we almost always want linear interpolation.
   self.canvas = love.graphics.newCanvas(self.width, self.height)
@@ -53,6 +55,11 @@ function Layer:render()
   end
 end
 
+function Layer:translate(x, y)
+  self.tx = x
+  self.ty = y
+end
+
 -- Given a canvas and a function that does graphical operations, make
 -- sure the function operates only within the given canvas.
 function Layer:draw(fn, args)
@@ -61,6 +68,7 @@ function Layer:draw(fn, args)
       fn(unpack(args or {}))
     end
     love.graphics.push()
+    love.graphics.translate(self.tx, self.ty)
     self.canvas:renderTo(closure)
     love.graphics.pop()
     -- reset all graphic attributes as to avoid side-effects
