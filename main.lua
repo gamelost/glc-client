@@ -47,7 +47,7 @@ function love.load()
   }
   stateChanged = true
 
-  killVerbs = {"killed", "murdered", "tickled", "molested", "tea bagged", "vomited on", "creamed", "your-mom-ed"}
+  killVerbs = {"killed", "murdered", "smashed", "exploded", "dispatched", "neutralized", "X'd"}
 
   myPlayer = {
     state = myState,
