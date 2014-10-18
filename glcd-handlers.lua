@@ -22,6 +22,22 @@ function onBroadcast(msg)
     glcd.send("playerState", myState)
   elseif msg.request == "fireBullet" then
     table.insert(bulletList, msg.bullet)
+  elseif msg.request == "metadata_hit" then
+    if msg.properties.action == "toggle_next_layer" then
+      local currZone = nil
+      -- ugh.
+      for _, zone in pairs(zones) do
+        if zone.state.data.id == msg.zoneid then
+          currZone = zone
+          break
+        end
+      end
+      if currZone then
+        currZone.state.toggle_next_layer(currZone.state.tiles)
+      end
+    else
+      console.log("metadata hit: " .. inspect(msg.properties))
+    end
   end
 end
 
