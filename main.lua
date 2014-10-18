@@ -56,7 +56,7 @@ function love.load()
     width = 16,
     radius_w = 8,
     radius_h = 8,
-    hitPoint = 1,
+    hitPoint = 10,
   }
 
   defaultAvatar = nil
@@ -259,7 +259,7 @@ function love.update(dt)
   updateBulletState()
 
   for _, bullet in ipairs(bulletList) do
-    print(bullet.name .. "'s bullet is at " .. bullet.X .. "," .. bullet.Y)
+    -- print(bullet.name .. "'s bullet is at " .. bullet.X .. "," .. bullet.Y)
     if isPlayerHitByBullet(playerCoords, bullet) then
       myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
 
@@ -326,6 +326,12 @@ function love.draw()
     for i, bullet in pairs(bulletList) do
       layers.background:draw(drawBullet, {bullet.X, bullet.Y})
     end
+
+    local r, g, b, a = love.graphics.getColor()
+    love.graphics.setColor(0, 0, 255, 255)
+    love.graphics.setPointSize(10)
+    love.graphics.point(myState.X, myState.Y)
+    love.graphics.setColor(r, g, b, a)
   end
 
   -- and at the end of the frame, render all layers.
@@ -522,21 +528,24 @@ function love.textinput(text)
 end
 
 function bulletLocation(direction, X, Y)
+  local shootOffset = 0
   if direction == "left" then
-    return { X = X + 10, Y = Y }
+    return { X = X + shootOffset, Y = Y }
   elseif direction == "up" then
-    return { X = X, Y = Y + 10 }
+    return { X = X, Y = Y + shootOffset }
   elseif direction == "down" then
-    return { X = X, Y = Y - 10 }
+    return { X = X, Y = Y - shootOffset }
   else -- direction will always fire in the right if unset.
-    return { X = X - 10, Y = Y }
+    return { X = X - shootOffset, Y = Y }
   end
 end
 
 function fireBullet()
-  print("firing bullet")
   -- draw a layer containing the bullet and move it?
   local location = bulletLocation(myState.direction, myState.X, myState.Y)
+  print(myPlayer.name .. " fired a bullet to the " .. myState.direction .. ". " ..
+      "Initial firing locaiton = (" .. location.X .. "," .. location.Y .. "), " ..
+      "player's location: (" .. myState.X .. "," .. myState.Y .. ")")
   return {
     name = myPlayer.name,
     direction = myState.direction,
