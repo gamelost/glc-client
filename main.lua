@@ -165,8 +165,8 @@ function love.load()
       stateChanged = false
     end
   end
-  -- 20 times per second.
-  clock.every(1/20, updateTimer, "updateState")
+  -- 10 times per second.
+  clock.every(1/10, updateTimer, "updateState")
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'

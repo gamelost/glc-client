@@ -126,8 +126,18 @@ function hasCollision(mZone, x, y)
     if metadata then
       isCollidable = metadata.properties.collidable
       -- check for other kinds of metadata.
-      if metadata.properties.action then
-        mZone.state.toggle_next_layer(mZone.state.tiles)
+      if not isCollidable and metadata.properties then
+        -- make sure we aren't hitting this one more than once every 5 seconds.
+        -- TODO: make this per-tile, rather than per-metadata property!
+        local now = love.timer.getTime()
+        local last_hit = metadata.properties.last_hit
+        local past_time = now > (last_hit or now) + 5
+        if not last_hit or past_time then
+          glcd.send("broadcast", {request="metadata_hit",
+                                  properties=metadata.properties,
+                                  zoneid=mZone.state.data.id})
+          metadata.properties.last_hit = now
+        end
       end
     end
 
