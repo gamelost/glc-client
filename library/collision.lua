@@ -121,9 +121,16 @@ function hasCollision(mZone, x, y)
       metadata = metadatas[metalayer.data[metaIndex]]
       --print("metadata:", inspect(metadata))
     end
+
+    -- eventually we want to abstract away metadata.properties.
     if metadata then
       isCollidable = metadata.properties.collidable
+      -- check for other kinds of metadata.
+      if metadata.properties.action then
+        mZone.state.toggle_next_layer(mZone.state.tiles)
+      end
     end
+
     -- print(string.format("got %d, %d and ended up with [%d](%d,%d): %s", x, y, metaIndex, gridx, gridy, coll))
   end
 
