@@ -37,6 +37,9 @@ settings.zone_width = 25
 settings.assets_dir = "assets"
 settings.show_metadata_layer = false
 
+settings.player = {}
+settings.player.default_hitpoint = 10
+
 -- currently only works in the ohl office
 settings.attempt_mount = false
 settings.asset_vm_dir = "assets/vm"
