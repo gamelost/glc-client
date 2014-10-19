@@ -128,7 +128,7 @@ end
 
 local consume_one = function(self, handler)
     assert(type(handler) == "function")
-    ready(self, 1)
+    ready(self, 200)
     local msg = assert(read_frame(self))
     if type(msg) == "string" then
         assert(msg == "_heartbeat_")
