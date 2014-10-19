@@ -10,7 +10,12 @@ layer = require("library/layer")
 console = require("library/console")
 handlers = require("glcd-handlers")
 inspect = require("library/inspect")
-splash_screen = require("loading/current")
+
+Gamelost = {}
+Gamelost.splash_screen = require("loading/current")
+Gamelost.game_keys     = require("library/game_keys")
+Gamelost.randomQuote   = require("library/random_quote")
+
 
 function updateMyState(opts)
   for k, v in pairs(opts) do
@@ -18,14 +23,6 @@ function updateMyState(opts)
   end
   myPlayer.state = myState
   stateChanged = true
-end
-
-function randomQuote()
-  local f = io.open("assets/loading/quotes.json", "rb")
-  local quotes = json.decode(f:read("*all"))
-  f:close()
-  local index = math.random(#quotes.quotes)
-  return '"' .. quotes.quotes[index] .. '"'
 end
 
 -- Called only once when the game is started.
@@ -38,7 +35,7 @@ function love.load()
 
   -- introduction and random quote.
   console.log("** starting game lost crash client")
-  console.log(randomQuote())
+  console.log(Gamelost.randomQuote())
   console.show()
 
   myState = {
@@ -85,7 +82,7 @@ function love.load()
 
   -- load the splash screen
   splash = true
-  splash_screen.load()
+  Gamelost.splash_screen.load()
   layers.splash:activate()
 
   -- set up splash screen to display for one second.
@@ -100,7 +97,7 @@ function love.load()
     glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
   end
   clock.schedule(1, splash_cb, "setSplash")
-  clock.every(1/16, splash_screen.update, "updateSplash")
+  clock.every(1/16, Gamelost.splash_screen.update, "updateSplash")
 
   -- load player asset
   avatars = {}
@@ -290,7 +287,7 @@ function love.draw()
   layers.console:draw(console.draw)
 
   if splash then
-    layers.splash:draw(splash_screen.draw)
+    layers.splash:draw(Gamelost.splash_screen.draw)
     layers.splash:background(255, 255, 255, 0)
   else
 
@@ -547,51 +544,13 @@ function fireBullet()
   }
 end
 
--- Game Mode Keys Table
-local game_keys = {
-  tab = function ()
-    console.input.start()
-    keymode = "console"
-  end,
-  v = function ()
-    AvatarId = changeAvatar(AvatarId)
-    updateMyState({AvatarId = AvatarId})
-  end,
-  s = function ()
-    AvatarState = AvatarState + 1
-    if AvatarState > 2 then
-      AvatarState = 0
-    end
-    updateMyState({AvatarState = AvatarState})
-  end,
-  [" "] = function ()
-    glcd.send("broadcast", {request = "fireBullet", bullet = fireBullet()})
-  end,
-  x = function ()
-    px, py = randomZoneLocation()
-    updateMyState({X = px, Y = py})
-  end,
-  l = function ()
-    local currZoneId, currZone = getZoneOffset(px, py)
-    if currZone then
-      currZone.state.toggle_next_layer(currZone.state.tiles)
-    end
-  end,
-  p = function()
-    if love.keyboard.isDown("lctrl") then
-      local screenshot = love.graphics.newScreenshot()
-      screenshot:encode("screenshot" .. os.date("%d-%m-%Y-%H-%M-%S") .. ".png")
-    end
-  end,
-}
-
 function love.keypressed(key)
   if key == "escape" then
     glcd.sendSynchronous("chat", {Sender=glcd.name, Message="Player has left the Game!"})
     love.event.quit()
   end
   if keymode == "game" then
-    return game_keys[key] and game_keys[key]()
+    return Gamelost.game_keys[key] and Gamelost.game_keys[key]()
   elseif keymode == "console" then
     if key == "tab" then
       console.input.cancel()
