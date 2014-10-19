@@ -10,8 +10,12 @@ layer = require("library/layer")
 console = require("library/console")
 handlers = require("glcd-handlers")
 inspect = require("library/inspect")
-splash_screen = require("loading/current")
-game_keys = require("library/game_keys")
+
+Gamelost = {}
+Gamelost.splash_screen = require("loading/current")
+Gamelost.game_keys     = require("library/game_keys")
+Gamelost.randomQuote   = require("library/random_quote")
+
 
 function updateMyState(opts)
   for k, v in pairs(opts) do
@@ -19,14 +23,6 @@ function updateMyState(opts)
   end
   myPlayer.state = myState
   stateChanged = true
-end
-
-function randomQuote()
-  local f = io.open("assets/loading/quotes.json", "rb")
-  local quotes = json.decode(f:read("*all"))
-  f:close()
-  local index = math.random(#quotes.quotes)
-  return '"' .. quotes.quotes[index] .. '"'
 end
 
 -- Called only once when the game is started.
@@ -39,7 +35,7 @@ function love.load()
 
   -- introduction and random quote.
   console.log("** starting game lost crash client")
-  console.log(randomQuote())
+  console.log(Gamelost.randomQuote())
   console.show()
 
   myState = {
@@ -86,7 +82,7 @@ function love.load()
 
   -- load the splash screen
   splash = true
-  splash_screen.load()
+  Gamelost.splash_screen.load()
   layers.splash:activate()
 
   -- set up splash screen to display for one second.
@@ -101,7 +97,7 @@ function love.load()
     glcd.send("chat", {Sender=glcd.name, Message="Player has entered the Game!"})
   end
   clock.schedule(1, splash_cb, "setSplash")
-  clock.every(1/16, splash_screen.update, "updateSplash")
+  clock.every(1/16, Gamelost.splash_screen.update, "updateSplash")
 
   -- load player asset
   avatars = {}
@@ -291,7 +287,7 @@ function love.draw()
   layers.console:draw(console.draw)
 
   if splash then
-    layers.splash:draw(splash_screen.draw)
+    layers.splash:draw(Gamelost.splash_screen.draw)
     layers.splash:background(255, 255, 255, 0)
   else
 
@@ -554,7 +550,7 @@ function love.keypressed(key)
     love.event.quit()
   end
   if keymode == "game" then
-    return game_keys[key] and game_keys[key]()
+    return Gamelost.game_keys[key] and Gamelost.game_keys[key]()
   elseif keymode == "console" then
     if key == "tab" then
       console.input.cancel()
