@@ -110,6 +110,14 @@ function hasCollision(mZone, x, y)
       end
     end
 
+    -- pre-initialize metalayer triggers: these prevent repeatedly
+    -- performing metadata triggers on the same tile. each meta tile
+    -- type has a cooldown period before it can be triggered again.
+    -- The default is 5s.
+    if metalayer and not metalayer.triggers then
+      metalayer.triggers = {}
+    end
+
     -- use 'settings' global variable for now.
     local gridx = math.ceil(x / settings.tile_width)
     local gridy = math.ceil(y / settings.tile_height)
@@ -122,21 +130,23 @@ function hasCollision(mZone, x, y)
       --print("metadata:", inspect(metadata))
     end
 
-    -- eventually we want to abstract away metadata.properties.
     if metadata then
       isCollidable = metadata.properties.collidable
       -- check for other kinds of metadata.
       if not isCollidable and metadata.properties then
-        -- make sure we aren't hitting this one more than once every 5 seconds.
-        -- TODO: make this per-tile, rather than per-metadata property!
+        -- make sure we aren't hitting this trigger more than once/cooldown period.
         local now = love.timer.getTime()
-        local last_hit = metadata.properties.last_hit
-        local past_time = now > (last_hit or now) + 5
+        local last_hit = metalayer.triggers[metaIndex] and metalayer.triggers[metaIndex].last_hit
+        local cooldown = metadata.properties.cooldown or 5
+        local past_time = now > (last_hit or now) + cooldown
         if not last_hit or past_time then
           glcd.send("broadcast", {request="metadata_hit",
+                                  x=gridx,
+                                  y=gridy,
                                   properties=metadata.properties,
                                   zoneid=mZone.state.data.id})
-          metadata.properties.last_hit = now
+          metalayer.triggers[metaIndex] = {}
+          metalayer.triggers[metaIndex].last_hit = now
         end
       end
     end
