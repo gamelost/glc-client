@@ -56,7 +56,7 @@ function love.load()
     width = 16,
     radius_w = 8,
     radius_h = 8,
-    hitPoint = 10,
+    hitPoint = settings.player.default_hitpoint
   }
 
   defaultAvatar = nil
@@ -260,7 +260,8 @@ function love.update(dt)
 
   for _, bullet in ipairs(bulletList) do
     -- print(bullet.name .. "'s bullet is at " .. bullet.X .. "," .. bullet.Y)
-    if isPlayerHitByBullet(playerCoords, bullet) then
+    if not bullet.hitList[myPlayer.name] and isPlayerHitByBullet(playerCoords, bullet) then
+      bullet.hitList[myPlayer.name] = true
       myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
 
       local currZoneId, currZone = getZoneOffset(playerCoords.x, playerCoords.y)
@@ -274,6 +275,10 @@ function love.update(dt)
         print(killString)
         -- TODO: Need a way to send a system event instead.
         glcd.send("chat", {Sender=glcd.name, Message=killString})
+        -- Teleport to a random location after player dies.
+        px, py = randomZoneLocation()
+        updateMyState({X = px, Y = py})
+        myPlayer.hitPoint = settings.player.default_hitpoint
       else
         print(myPlayer.name .. " was hit by " .. bullet.name)
       end
@@ -289,16 +294,16 @@ function love.draw()
   -- draw console layer first.
   layers.console:draw(console.draw)
 
+  -- set background layer transform coordinates. we do this so that
+  -- we can have our avatar in the middle of the screen.
+  local mx, my = layers.background:midpoint()
+  local bx = mx - myPlayer.state.X
+  local by = my - myPlayer.state.Y
+
   if splash then
     layers.splash:draw(splash_screen.draw)
     layers.splash:background(255, 255, 255, 0)
   else
-
-    -- set background layer transform coordinates. we do this so that
-    -- we can have our avatar in the middle of the screen.
-    local mx, my = layers.background:midpoint()
-    local bx = mx - myPlayer.state.X
-    local by = my - myPlayer.state.Y
     layers.background:translate(bx, by)
 
     -- similarly with text, but in terms of the background coordinate
@@ -327,11 +332,6 @@ function love.draw()
       layers.background:draw(drawBullet, {bullet.X, bullet.Y})
     end
 
-    local r, g, b, a = love.graphics.getColor()
-    love.graphics.setColor(0, 0, 255, 255)
-    love.graphics.setPointSize(10)
-    love.graphics.point(myState.X, myState.Y)
-    love.graphics.setColor(r, g, b, a)
   end
 
   -- and at the end of the frame, render all layers.
@@ -528,7 +528,7 @@ function love.textinput(text)
 end
 
 function bulletLocation(direction, X, Y)
-  local shootOffset = 0
+  local shootOffset = -4
   if direction == "left" then
     return { X = X + shootOffset, Y = Y }
   elseif direction == "up" then
@@ -551,6 +551,7 @@ function fireBullet()
     direction = myState.direction,
     X = location.X,
     Y = location.Y,
+    hitList = {[""] = true}, -- json.lua is fubar! To hell with it. It'll crash if I leave an empty table {} here.
     damage = 1,
     startTime = love.timer.getTime(),
   }
