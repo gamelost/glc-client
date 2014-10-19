@@ -257,7 +257,8 @@ return {
         {
           id = 4,
           properties = {
-            ["action"] = "toggle_next_layer"
+            ["action"] = "toggle_next_layer",
+            ["cooldown"] = 10
           }
         },
         {
