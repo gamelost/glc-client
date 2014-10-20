@@ -236,7 +236,7 @@ function love.update(dt)
 
     for name, otherPlaya in pairs(otherPlayers) do
       -- UGLY piece of shit hack.
-      print(otherPlaya.name .. ": {" .. otherPlaya.state.X .. "," .. otherPlaya.state.Y .. "}")
+      --print(otherPlaya.name .. ": {" .. otherPlaya.state.X .. "," .. otherPlaya.state.Y .. "}")
       otherPlaya.state['radius_w'] = myPlayer.radius_w
       otherPlaya.state['radius_h'] = myPlayer.radius_h
       otherPlaya.state['width'] = myPlayer.width
@@ -269,7 +269,7 @@ function love.update(dt)
       if myPlayer.hitPoint <= 0 then
         local randomVerb = killVerbs[math.random(1, #killVerbs)]
         local killString = (myPlayer.name .. " was " .. randomVerb .. " by " .. bullet.name)
-        print(killString)
+        --print(killString)
         -- TODO: Need a way to send a system event instead.
         glcd.send("chat", {Sender=glcd.name, Message=killString})
         -- Teleport to a random location after player dies.
@@ -350,7 +350,7 @@ function updateBulletState()
 
     -- if bullet hasn't hit an obstacle after two seconds, remove bullet.
     if time > bullet.startTime + 2 then
-      print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
+      --print("bullet" .. i .. " from " .. bullet.name .. " didn't hit anything")
       bulletList[i] = nil
     else
       -- update bullet X to move to the direction based on time
@@ -540,9 +540,9 @@ end
 function fireBullet()
   -- draw a layer containing the bullet and move it?
   local location = bulletLocation(myState.direction, myState.X, myState.Y)
-  print(myPlayer.name .. " fired a bullet to the " .. myState.direction .. ". " ..
-      "Initial firing locaiton = (" .. location.X .. "," .. location.Y .. "), " ..
-      "player's location: (" .. myState.X .. "," .. myState.Y .. ")")
+  -- print(myPlayer.name .. " fired a bullet to the " .. myState.direction .. ". " ..
+  --     "Initial firing locaiton = (" .. location.X .. "," .. location.Y .. "), " ..
+  --     "player's location: (" .. myState.X .. "," .. myState.Y .. ")")
   return {
     name = myPlayer.name,
     direction = myState.direction,

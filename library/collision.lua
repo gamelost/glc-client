@@ -69,8 +69,8 @@ function getZoneOffset(wx, wy)
 end
 
 function isPlayerHitByBullet(player, bullet)
-  print("Player '" .. player.name .. "': {X=" .. player.x .. ",Y=" .. player.y .. "}")
-  print("Bullet from '" .. bullet.name .. "': {X=" .. bullet.X .. ",Y=" .. bullet.Y .. "}")
+  -- print("Player '" .. player.name .. "': {X=" .. player.x .. ",Y=" .. player.y .. "}")
+  -- print("Bullet from '" .. bullet.name .. "': {X=" .. bullet.X .. ",Y=" .. bullet.Y .. "}")
 
   if (bullet.X >= (player.x - player.radius_w) and
       bullet.X <= (player.x + player.radius_w) and
