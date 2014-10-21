@@ -253,7 +253,7 @@ function love.update(dt)
   end
 
   for i, sprite in pairs(Gamelost.spriteList) do
-    sprite.update()
+    sprite:update()
   end
 end
 
@@ -300,7 +300,7 @@ function love.draw()
     layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
 
     for i, sprite in pairs(Gamelost.spriteList) do
-      sprite.draw()
+      sprite:draw()
     end
 
   end
