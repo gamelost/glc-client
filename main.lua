@@ -379,9 +379,9 @@ function drawPlayerAttributes(name, player)
     return
   end
   if p == myState then
-    drawText(p.X, p.Y - 12, name, 255, 255, 255)
+    drawText(p.X, p.Y - 15, name, 255, 255, 255)
   else
-    drawText(p.X, p.Y - 12, name, 0, 255, 128)
+    drawText(p.X, p.Y - 15, name, 0, 255, 128)
   end
 
   -- Text shows for 3 seconds.
@@ -389,6 +389,8 @@ function drawPlayerAttributes(name, player)
   if player.msg and player.msgtime > exp then
     drawText(p.X, p.Y - 25, player.msg, 0, 255, 255)
   end
+
+  drawHealthBar(p.X, p.Y - 10, player.hitPoint)
 end
 
 -- drawText is for drawing text with a black border on the map,
@@ -419,6 +421,39 @@ function drawText(x, y, str, r, g, b)
   -- Set color of text and fill in.
   love.graphics.setColor(r, g, b)
   love.graphics.printf(str,  0,  0, MAX_WIDTH_OF_TEXT, "center")
+  love.graphics.pop()
+end
+
+function drawHealthBar(x, y, hp)
+  local BAR_WIDTH = 40
+  local BAR_HEIGHT = 4
+  local BORDER_WIDTH = 2
+
+  local overallHeight = BAR_HEIGHT + 2 * BORDER_WIDTH
+  local overallWidth = BAR_WIDTH + 2 * BORDER_WIDTH
+
+  local overallOffset = overallWidth / 2
+  local rx, ry = layers.background:coordinates(x, y)
+
+  love.graphics.push()
+
+  love.graphics.translate(rx, ry)
+  love.graphics.translate(- overallOffset, 0)
+
+  -- draw border
+  love.graphics.setColor(0, 0, 0, 255)
+  love.graphics.rectangle("fill", 0, 0, overallWidth, overallHeight)
+
+  love.graphics.translate(BORDER_WIDTH, BORDER_WIDTH)
+
+  -- draw red part
+  love.graphics.setColor(255, 0, 0, 255)
+  love.graphics.rectangle("fill", 0, 0, BAR_WIDTH, BAR_HEIGHT)
+
+  -- draw green part
+  love.graphics.setColor(0, 255, 0, 255)
+  love.graphics.rectangle("fill", 0, 0, (hp / settings.player.default_hitpoint) * BAR_WIDTH, BAR_HEIGHT)
+
   love.graphics.pop()
 end
 
