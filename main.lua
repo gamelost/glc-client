@@ -248,10 +248,7 @@ function love.update(dt)
 
     px = playerCoords.x
     py = playerCoords.y
-    updateMyState({X = px, Y = py, direction = direction})
-    -- TODO: I'm trying to send currZoneId and currZone to updateMyState, but
-    -- it's causing stack overflow with json.lua.
-    -- updateMyState({X = px, Y = py, direction = direction, currZoneId = currZoneId, currZone = currZone })
+    updateMyState({X = px, Y = py, direction = direction, currZoneId = currZoneId})
   end
 
   for i, sprite in pairs(Gamelost.spriteList) do
