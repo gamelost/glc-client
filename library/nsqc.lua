@@ -1,4 +1,5 @@
 local socket = require "socket"
+require "library/json"
 
 local FRAMETYPE = {RESPONSE = 0, ERROR = 1, MESSAGE = 2}
 
@@ -29,19 +30,6 @@ local valid_message_id = function(s)
 end
 
 ---- helpers
-
-local command = function(cmd, params, body)
-    local _body = ""
-    local _params = ""
-
-    if params and next(params) then
-        _params = " " .. table.concat(params, " ")
-    end
-
-    assert(not body, "unimplemented")
-
-    return table.concat({cmd, _params, "\n", _body})
-end
 
 local decode_big_endian_uint = function(str, bytes)
     assert(
@@ -91,6 +79,54 @@ local read_frame = function(self)
     end
 end
 
+local encode_big_endian_uint = function(r)
+    assert((type(r) == "number"))
+    -- Lua doesn't have integer division.
+    local b1 = r % 256
+    r = math.floor(r / 256)
+    local b2 = r % 256
+    r = math.floor(r / 256)
+    local b3 = r % 256
+    r = math.floor(r / 256)
+    local b4 = r % 256
+    local ret = table.concat({string.char(b4), string.char(b3), string.char(b2), string.char(b1)})
+    return ret
+end
+
+local encode_message = function(data)
+  return encode_big_endian_uint(#data) .. data
+end
+
+local read_frame = function(self)
+    local size = read_u32(self)
+    assert(size >= 4)
+    local frame_type = read_u32(self)
+    local data = self.cnx:receive(size - 4)
+    if frame_type == FRAMETYPE.RESPONSE then
+        return data
+    elseif frame_type == FRAMETYPE.ERROR then
+        return nil, data
+    else
+        assert(frame_type == FRAMETYPE.MESSAGE)
+        return decode_message(data)
+    end
+end
+
+local command = function(cmd, params, body)
+    local _body = ""
+    local _params = ""
+
+    if params and next(params) then
+        _params = " " .. table.concat(params, " ")
+    end
+
+    if body and #body > 0 then
+      _body = encode_message(body)
+    end
+
+    return table.concat({cmd, _params, "\n", _body})
+end
+
 ---- lowlevel
 
 local connect = function(self, server, port)
@@ -107,6 +143,16 @@ local subscribe = function(self, topic, channel)
     assert(valid_topic(topic) and valid_channel(channel))
     call(self, "SUB", {topic, channel})
     assert(read_frame(self) == "OK")
+end
+
+local publish = function(self, topic, body)
+    assert(valid_topic(topic))
+    call(self, "PUB", {topic}, body)
+    assert(read_frame(self) == "OK")
+end
+
+local disableHeartbeat = function(self)
+  call(self, "IDENTIFY", {}, json.encode({heartbeat_interval = -1}))
 end
 
 local ready = function(self, count)
@@ -151,6 +197,8 @@ end
 local methods = {
     connect = connect,
     subscribe = subscribe,
+    disableHeartbeat = disableHeartbeat,
+    publish = publish,
     consume_one = consume_one,
 }
 
