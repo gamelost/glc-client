@@ -15,8 +15,7 @@ Gamelost = {}
 Gamelost.splash_screen = require("loading/current")
 Gamelost.game_keys     = require("library/game_keys")
 Gamelost.randomQuote   = require("library/random_quote")
-Gamelost.Sprite        = require("library/sprite")
-Gamelost.Bullet        = require("library/sprite/bullet")
+Gamelost.Bullet        = require("library/sprites/bullet")
 Gamelost.spriteList    = {}
 
 function updateMyState(opts)
@@ -250,10 +249,16 @@ function love.update(dt)
     px = playerCoords.x
     py = playerCoords.y
     updateMyState({X = px, Y = py, direction = direction})
+    -- TODO: I'm trying to send currZoneId and currZone to updateMyState, but
+    -- it's causing stack overflow with json.lua.
+    -- updateMyState({X = px, Y = py, direction = direction, currZoneId = currZoneId, currZone = currZone })
   end
 
   for i, sprite in pairs(Gamelost.spriteList) do
-    sprite:update()
+    sprite:update(i, playerCoords)
+    if sprite.remove == true then
+      Gamelost.spriteList[i] = nil
+    end
   end
 end
 
