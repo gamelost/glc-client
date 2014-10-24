@@ -16,7 +16,14 @@ return {
     updateMyState({AvatarState = AvatarState})
   end,
   [" "] = function ()
-    glcd.send("broadcast", {request = "fireBullet", bullet = fireBullet()})
+    glcd.send("broadcast",
+      { request = "fireBullet"
+      , bullet = Gamelost.Bullet.fireBullet(
+                  { state=myState
+                  , player=myPlayer
+                  , speed=pSpeed
+                  } )
+      })
   end,
   x = function ()
     px, py = randomZoneLocation()
