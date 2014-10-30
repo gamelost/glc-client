@@ -5,7 +5,7 @@ return {
     keymode = "console"
   end,
   v = function ()
-    AvatarId = changeAvatar(AvatarId)
+    AvatarId = Gamelost.Player.changeAvatar(AvatarId)
     updateMyState({AvatarId = AvatarId})
   end,
   s = function ()

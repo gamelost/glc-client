@@ -16,8 +16,11 @@ Gamelost.splash_screen = require("assets/loading-screens/current")
 Gamelost.game_keys     = require("input/game_keys")
 Gamelost.randomQuote   = require("util/random_quote")
 Gamelost.Bullet        = require("graphics/sprites/bullet")
+Gamelost.Player        = require("graphics/sprites/player")
 Gamelost.spriteList    = {}
 
+-- TODO: Should not be global, but bullet, game_keys, and avatar are using
+-- updateMyState.
 function updateMyState(opts)
   for k, v in pairs(opts) do
     myState[k] = v
@@ -45,8 +48,6 @@ function love.load()
   }
   stateChanged = true
 
-  killVerbs = {"killed", "murdered", "smashed", "exploded", "dispatched", "neutralized", "X'd"}
-
   myPlayer = {
     state = myState,
     name = glcd.name,
@@ -56,8 +57,6 @@ function love.load()
     radius_h = 8,
     hitPoint = settings.player.default_hitpoint
   }
-
-  defaultAvatar = nil
 
   pressedKey = {value = nil, dirtyKey = false}
   keymode = "game"
@@ -102,16 +101,13 @@ function love.load()
 
   -- load player asset
   avatars = {}
-  traverse("assets/avatars", setAvatar)
+  traverse("assets/avatars", Gamelost.Player.setAvatar)
 
   -- default player speed
   pSpeed = 50
   -- default player avatar
   AvatarId = "assets/avatars/ava1.png"
   AvatarState = 0
-
-  -- initialize other player data
-  otherPlayers = {}
 
   -- world physics.
   love.physics.setMeter(16)
@@ -152,14 +148,18 @@ function love.load()
 
   glcd.send("connected")
   glcd.send("broadcast", {request= "playerState"})
+
   updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
 
   local updateTimer = function()
     if stateChanged then
       glcd.send("playerState", myState)
+      -- Put current client into the spriteList
+      Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayer)
       stateChanged = false
     end
   end
+
   -- 10 times per second.
   clock.every(1/10, updateTimer, "updateState")
 end
@@ -172,6 +172,8 @@ function love.update(dt)
 
   glcd.poll()
 
+  -----------------------------------------------------------------------------
+  -- BEGIN Code to check movement keys and broadcasting of location
   local speed = pSpeed * dt
   local dx = 0
   local dy = 0
@@ -220,7 +222,6 @@ function love.update(dt)
     local oldPxy = {x = px, y = py}
     py = py + dy
     px = px + dx
-    -- TODO: need to put 'px' and 'py' into myPlayer and then use myPlayer for all player states.
     playerCoords.x = px
     playerCoords.y = py
 
@@ -231,31 +232,27 @@ function love.update(dt)
       playerCoords.x = oldPxy.x
       playerCoords.y = oldPxy.y
     end
-
-    for name, otherPlaya in pairs(otherPlayers) do
-      -- UGLY piece of shit hack.
-      --print(otherPlaya.name .. ": {" .. otherPlaya.state.X .. "," .. otherPlaya.state.Y .. "}")
-      otherPlaya.state['radius_w'] = myPlayer.radius_w
-      otherPlaya.state['radius_h'] = myPlayer.radius_h
-      otherPlaya.state['width'] = myPlayer.width
-      otherPlaya.state['height'] = myPlayer.height
-      if didPlayerBumpedIntoOtherPlayer(playerCoords, otherPlaya.state) then
-        -- revert to old coordinates
-        playerCoords.x = oldPxy.x
-        playerCoords.y = oldPxy.y
-      end
-    end
-
-    px = playerCoords.x
-    py = playerCoords.y
-    updateMyState({X = px, Y = py, direction = direction, currZoneId = currZoneId})
   end
+  updateMyState({X=playerCoords.x, Y=playerCoords.y,
+                 direction=direction, currZoneId=currZoneId})
+  -- END Code to broadcast location.
 
   for i, sprite in pairs(Gamelost.spriteList) do
     sprite:update(i, playerCoords)
     if sprite.remove == true then
       Gamelost.spriteList[i] = nil
     end
+  end
+
+  -- Counter to count the number of global variables.
+  myUniqueCounter = myUniqueCounter or 0
+  if myUniqueCounter < 1 then
+    l = io.open("list_of_global_vars", "w")
+    for k,v in pairs(_G) do
+      l:write(k, "\n")
+    end
+    l.close()
+    myUniqueCounter = myUniqueCounter + 1
   end
 end
 
@@ -292,15 +289,6 @@ function love.draw()
       layers.background:draw(zone.update)
     end
 
-    -- draw other players
-    for name, p in pairs(otherPlayers) do
-      layers.background:draw(drawPlayer, {p.name, p})
-      layers.text:draw(drawPlayerAttributes, {p.name, p})
-    end
-
-    layers.background:draw(drawPlayer, {glcd.name, myPlayer})
-    layers.text:draw(drawPlayerAttributes, {glcd.name, myPlayer})
-
     for i, sprite in pairs(Gamelost.spriteList) do
       sprite:draw()
     end
@@ -309,164 +297,6 @@ function love.draw()
 
   -- and at the end of the frame, render all layers.
   _.invoke(all_layers, "render")
-end
-
-
-function drawPlayerAttributes(name, player)
-  local p = player.state
-  if not p or not p.X or not p.Y then
-    return
-  end
-  if p == myState then
-    drawText(p.X, p.Y - 15, name, 255, 255, 255)
-  else
-    drawText(p.X, p.Y - 15, name, 0, 255, 128)
-  end
-
-  -- Text shows for 3 seconds.
-  local exp = love.timer.getTime() - 3
-  if player.msg and player.msgtime > exp then
-    drawText(p.X, p.Y - 25, player.msg, 0, 255, 255)
-  end
-
-  drawHealthBar(p.X, p.Y - 10, player.hitPoint)
-end
-
--- drawText is for drawing text with a black border on the map,
--- at a given x, y location relative to the map, not the screen.
-function drawText(x, y, str, r, g, b)
-  -- Draw Name
-  local MAX_WIDTH_OF_TEXT = 200
-  local str_offset = MAX_WIDTH_OF_TEXT / 2
-  local rx, ry = layers.background:coordinates(x, y)
-
-  love.graphics.push()
-  love.graphics.translate(rx, ry)
-  love.graphics.translate(- str_offset, 0)
-
-  -- fake outlines
-  love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.printf(str, -2, -2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, -2,  0, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str, -2,  2, MAX_WIDTH_OF_TEXT, "center")
-
-  love.graphics.printf(str,  0, -2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str,  0,  2, MAX_WIDTH_OF_TEXT, "center")
-
-  love.graphics.printf(str,  2, -2, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str,  2,  0, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.printf(str,  2,  2, MAX_WIDTH_OF_TEXT, "center")
-
-  -- Set color of text and fill in.
-  love.graphics.setColor(r, g, b)
-  love.graphics.printf(str,  0,  0, MAX_WIDTH_OF_TEXT, "center")
-  love.graphics.pop()
-end
-
-function drawHealthBar(x, y, hp)
-  hp = 50
-  local BAR_WIDTH = 40
-  local BAR_HEIGHT = 4
-  local BORDER_WIDTH = 2
-
-  local overallHeight = BAR_HEIGHT + 2 * BORDER_WIDTH
-  local overallWidth = BAR_WIDTH + 2 * BORDER_WIDTH
-
-  local overallOffset = overallWidth / 2
-  local rx, ry = layers.background:coordinates(x, y)
-
-  love.graphics.push()
-
-  love.graphics.translate(rx, ry)
-  love.graphics.translate(- overallOffset, 0)
-
-  -- draw border
-  love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.rectangle("fill", 0, 0, overallWidth, overallHeight)
-
-  love.graphics.translate(BORDER_WIDTH, BORDER_WIDTH)
-
-  -- draw red part
-  love.graphics.setColor(255, 0, 0, 255)
-  love.graphics.rectangle("fill", 0, 0, BAR_WIDTH, BAR_HEIGHT)
-
-  -- draw green part
-  love.graphics.setColor(0, 255, 0, 255)
-  love.graphics.rectangle("fill", 0, 0, (hp / settings.player.default_hitpoint) * BAR_WIDTH, BAR_HEIGHT)
-
-  love.graphics.pop()
-end
-
-function drawPlayer(name, player)
-  local p = player.state
-  if not p or not p.X or not p.Y then
-    return
-  end
-  local frame = math.floor(love.timer.getTime() * 3) % 2
-
-  -- Draw Avatar
-  local image = avatars[p.AvatarId]
-  if image == nil then
-    image = defaultAvatar
-  end
-
-  local frameOffset = frame * 16
-  if frameOffset >= image:getWidth() then
-    frameOffset = 0
-  end
-
-  if p.AvatarState == nil then
-    p.AvatarState = 0
-  end
-  local stateOffset = p.AvatarState * 16
-  if stateOffset >= image:getHeight() then
-    stateOffset = 0
-  end
-
-  love.graphics.push()
-  love.graphics.translate(p.X, p.Y)
-
-  local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
-
-  local direction = player.state.direction or "right"
-  if direction == "right" then
-    love.graphics.draw(image, quad, 0, 0, 0, -1, 1, 8, 8)
-  else
-    love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
-  end
-
-  love.graphics.pop()
-end
-
--- Avatar related functions
-function setAvatar(file)
-  if string.sub(file, -4) == ".png" then
-    avatars[file] = love.graphics.newImage(file)
-    if defaultAvatar == nil then
-      defaultAvatar = avatars[file]
-    end
-  end
-end
-
-function changeAvatar(id)
-  local keys = {}
-  local n    = 0
-  local first = nil
-  local ret = false
-  for k, v in pairs(avatars) do
-    n = n + 1
-    keys[n] = k
-    if ret then
-      return k
-    end
-    if k == id then
-      ret = true
-    end
-    if not first then
-      first = k
-    end
-  end
-  return first
 end
 
 -- Mouse pressed.
