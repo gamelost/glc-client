@@ -1,4 +1,4 @@
-require("library/nsq")
+require("net/nsq")
 
 -- The sending channel which love pushes messages onto
 local topic, sendchan = ...

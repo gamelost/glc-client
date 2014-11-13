@@ -1,9 +1,9 @@
 function init()
   -- -- TODO: should be self.assets[...]
   --tileset = require("assets/zone-test/Dungeon_sans_npcs")
-  glc_tileset = require("library/tileset")
+  glc_tileset = require("graphics/tileset")
   tileset = require("assets/zone-test/out-of-farm")
-  inspect = require("library/inspect")
+  inspect = require("util/inspect")
   state.tiles = glc_tileset.load_batched_tiles(tileset)
   state.toggle_next_layer = glc_tileset.toggle_next_layer -- TODO hack
 end

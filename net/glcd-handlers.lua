@@ -1,4 +1,4 @@
-local inspect = require("library/inspect")
+local inspect = require("util/inspect")
 
 function onChat(v, m)
   if not v.Sender then

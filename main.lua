@@ -1,21 +1,21 @@
 require "conf"
-require "library/fs"
-require "library/json"
-require "library/collision"
+require "util/fs"
+require "net/json"
+require "geometry/collision"
 
-_ = require("library/underscore")
-clock = require("library/clock")
-glcd = require("library/glcd")
-layer = require("library/layer")
-console = require("library/console")
-handlers = require("glcd-handlers")
-inspect = require("library/inspect")
+_ = require("util/underscore")
+clock = require("util/clock")
+inspect = require("util/inspect")
+layer = require("graphics/layer")
+console = require("graphics/console")
+glcd = require("net/glcd")
+handlers = require("net/glcd-handlers")
 
 Gamelost = {}
-Gamelost.splash_screen = require("loading/current")
-Gamelost.game_keys     = require("library/game_keys")
-Gamelost.randomQuote   = require("library/random_quote")
-Gamelost.Bullet        = require("library/sprites/bullet")
+Gamelost.splash_screen = require("assets/loading-screens/current")
+Gamelost.game_keys     = require("input/game_keys")
+Gamelost.randomQuote   = require("util/random_quote")
+Gamelost.Bullet        = require("graphics/sprites/bullet")
 Gamelost.spriteList    = {}
 
 function updateMyState(opts)
@@ -138,7 +138,7 @@ function love.load()
   zones = {}
   wads = wadq:demand()
   for wad, _ in pairs(wads) do
-    local zone = require("library/zone")
+    local zone = require("zone/zone")
     table.insert(zones, zone.new(wad))
     console.log("loaded zone from " .. wad)
   end

@@ -45,7 +45,7 @@ settings.attempt_mount = false
 settings.asset_vm_dir = "assets/vm"
 settings.asset_vm_userhost = "vagrant@assets.ohl"
 settings.asset_vm_remotedir = "."
-settings.asset_vm_keypath = "keys/insecure_private_key"
+settings.asset_vm_keypath = "assets/keys/insecure_private_key"
 
 function mount_vm_command(keypath, userhost, remotedir, where)
   os = require "os"

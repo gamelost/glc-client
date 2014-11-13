@@ -1,5 +1,5 @@
-require "library/http"
-require "library/json"
+require "net/http"
+require "net/json"
 require "conf"
 
 NsqHttp = Http:new{url_prefix=settings.nsq_http_api}
