@@ -60,7 +60,9 @@ Example usage:
 
 __Windows__:
 
-There is no official support as of yet, although there is no particular reason why running under Windows should not work. If you want to champion Windows platform support, drop us a line!
+First, set up Love2d as per the [instructions](http://love2d.org/wiki/Getting_Started). Secondly, open a command line shell (Start -> Run -> cmd); `cd` to the directory containing `glc-client` and then run:
+
+        "C:\Program Files\LOVE\love.exe" --console .
 
 Keyboard Shortcuts
 ==================
