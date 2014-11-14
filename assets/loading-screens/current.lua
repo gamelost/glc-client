@@ -1,1 +1,1 @@
-0.5/smbw.lua
+0.6/mandelbrot.lua
