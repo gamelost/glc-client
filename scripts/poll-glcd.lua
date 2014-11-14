@@ -1,11 +1,11 @@
 require "os"
 require "conf"
-require "library/json"
-inspect = require("library/inspect")
+require "net/json"
+inspect = require("util/inspect")
 
 local clientid, recv = ...
 
-local nsq = require "library/nsqc"
+local nsq = require "net/nsqc"
 
 local c = nsq.new(settings.nsq_host, settings.nsq_port)
 

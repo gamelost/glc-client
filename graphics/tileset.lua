@@ -1,4 +1,4 @@
-inspect = require("library/inspect")
+inspect = require("util/inspect")
 
 function reload_layer(tilesets)
   for _, batch in ipairs(tilesets.sprite_batches) do

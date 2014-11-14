@@ -2,7 +2,7 @@ require "love.timer"
 
 q = ...
 
-fs = require("library/fs")
+fs = require("util/fs")
 fs.init()
 
 -- brute force, yo

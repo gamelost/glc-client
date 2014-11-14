@@ -1,8 +1,9 @@
 require("socket")
 require("conf")
-require("library/nsq")
-require("library/json")
-local inspect = require("library/inspect")
+require("net/nsq")
+require("net/json")
+
+local inspect = require("util/inspect")
 
 -- glcd heartbeat
 local lastheartbeat = love.timer.getTime()

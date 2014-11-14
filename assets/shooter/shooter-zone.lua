@@ -1,8 +1,8 @@
 function init()
   -- TODO: should be self.assets[...]
   tileset = require("assets/shooter/shooter")
-  glc_tileset = require("library/tileset")
-  inspect = require("library/inspect")
+  glc_tileset = require("graphics/tileset")
+  inspect = require("util/inspect")
   state.tiles = glc_tileset.load_batched_tiles(tileset)
   state.data = {}
   state.toggle_next_layer = glc_tileset.toggle_next_layer -- TODO hack
