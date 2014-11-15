@@ -245,15 +245,16 @@ function love.update(dt)
   end
 
   -- Counter to count the number of global variables.
-  myUniqueCounter = myUniqueCounter or 0
-  if myUniqueCounter < 1 then
-    l = io.open("list_of_global_vars", "w")
-    for k,v in pairs(_G) do
-      l:write(k, "\n")
-    end
-    l.close()
-    myUniqueCounter = myUniqueCounter + 1
-  end
+  -- Feel free to delete. Not deleted since 2014-11-14
+  -- myUniqueCounter = myUniqueCounter or 0
+  -- if myUniqueCounter < 1 then
+  --   l = io.open("list_of_global_vars", "w")
+  --   for k,v in pairs(_G) do
+  --     l:write(k, "\n")
+  --   end
+  --   l.close()
+  --   myUniqueCounter = myUniqueCounter + 1
+  -- end
 end
 
 -- Where all the drawings happen, also runs continuously.
