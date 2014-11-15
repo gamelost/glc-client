@@ -19,7 +19,7 @@ local playername = os.getenv("USER") or os.getenv("USERNAME")
 local glcdrecv = love.thread.newChannel()
 local glcdsend = love.thread.newChannel()
 
-function createClientID()
+local function createClientID()
   local s = socket.udp()
   s:setpeername("8.8.8.8", 51)
   local ip, _ = s:getsockname()
@@ -30,7 +30,7 @@ end
 -- clientid, used to identify the player to glcd
 local clientid = createClientID()
 
-function init()
+local function init()
   -- create the topics if they do not exist. we need this for e.g.,
   -- local setup.
   NsqHttp:createTopic(settings.nsq_gamestate_topic)
@@ -49,12 +49,12 @@ function init()
   sendthread:start(settings.nsq_daemon_topic, glcdsend)
 end
 
-function addHandler(command, handler)
+local function addHandler(command, handler)
   assert(handler ~= nil)
   handlers[command] = handler
 end
 
-function buildMessage(command, msg)
+local function buildMessage(command, msg)
   local val = {
     ClientId = clientid,
     Type = command,
@@ -65,20 +65,20 @@ end
 
 -- This is only used on quit, to ensure that we send messages before we
 -- actually quit.
-function sendSynchronous(command, msg)
+local function sendSynchronous(command, msg)
   local data = buildMessage(command, msg)
   local pub = NsqHttp:new()
   pub:publish(settings.nsq_daemon_topic, data)
 end
 
-function send(command, msg)
+local function send(command, msg)
   local data = buildMessage(command, msg)
   glcdsend:push(data)
 end
 
 local playerStatus = "OFFLINE"
 
-function sendHeartbeat()
+local function sendHeartbeat()
   local msg = {
     ClientId = clientid,
     Timestamp = os.time(),
@@ -93,14 +93,14 @@ function sendHeartbeat()
   lastheartbeat = love.timer.getTime()
 end
 
-function setPlayerStatus(newStatus)
+local function setPlayerStatus(newStatus)
   if playerStatus ~= newStatus then
     playerStatus = newStatus
     sendHeartbeat()
   end
 end
 
-function poll()
+local function poll()
   -- heartbeat
   local elapsed = love.timer.getTime() - lastheartbeat
   if elapsed > 5.0 then

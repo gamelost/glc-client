@@ -1,3 +1,5 @@
+local killVerbs = {"killed", "murdered", "smashed", "exploded", "dispatched", "neutralized", "X'd"}
+
 -- sets the location of the bullet
 local function bulletLocation(direction, X, Y)
   local shootOffset = -4
@@ -129,6 +131,5 @@ function Bullet.new(obj)
   setmetatable(obj, Bullet.metatable)
   return obj
 end
-
 
 return Bullet
