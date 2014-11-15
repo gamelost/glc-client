@@ -22,7 +22,8 @@ local AvatarState = 0
 -- at a given x, y location relative to the map, not the screen.
 local function drawText(x, y, str, r, g, b)
   -- Draw Name
-  local MAX_WIDTH_OF_TEXT = 200
+  local MAX_WIDTH_OF_TEXT = 50
+  str = string.sub(str, 0, MAX_WIDTH_OF_TEXT)
   local str_offset = MAX_WIDTH_OF_TEXT / 2
   local rx, ry = layers.background:coordinates(x, y)
 
