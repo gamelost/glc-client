@@ -58,7 +58,7 @@ local function onPlayerState(v)
     print("error: onplayerstate information was empty")
   elseif clientid ~= glcd.clientid then
     if Gamelost.spriteList[clientid] == nil then
-      Gamelost.spriteList[clientid] = {name=clientid}
+      Gamelost.spriteList[clientid] = Gamelost.Player.new{name=clientid}
       if v.Name then
         Gamelost.spriteList[clientid].name = v.Name
       else
