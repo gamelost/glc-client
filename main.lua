@@ -364,6 +364,7 @@ function drawText(x, y, str, r, g, b)
 end
 
 function drawHealthBar(x, y, hp)
+  hp = 50
   local BAR_WIDTH = 40
   local BAR_HEIGHT = 4
   local BORDER_WIDTH = 2
