@@ -24,7 +24,7 @@ end
 
 -- update bullet X to move to the direction based on time
 -- uses pSpeed to avoid the bullet being slower than player speed
-local function updateBulletState(bullet, i)
+local function updateBulletState(bullet)
   local time, direction, startTime, delta, X, Y, bullet_speed, currZoneId
   time       = love.timer.getTime()
   direction  = bullet.direction or "right"
@@ -62,7 +62,7 @@ local function updateBulletState(bullet, i)
   end
 end
 
-local function checkHitOnOtherPlayer(bullet, i, playerCoords)
+local function checkHitOnOtherPlayer(bullet, playerCoords)
   if not bullet.hitList[myPlayer.name] and isPlayerHitByBullet(playerCoords, bullet) then
     bullet.hitList[myPlayer.name] = true
     myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
@@ -112,9 +112,9 @@ local function fireBullet(playerData)
 end
 
 local metaindex = {
-  update = function(self, i, playerCoords)
-    updateBulletState(self, i)
-    checkHitOnOtherPlayer(self, i, playerCoords)
+  update = function(self, playerCoords)
+    updateBulletState(self)
+    checkHitOnOtherPlayer(self, playerCoords)
   end,
   draw = function(self)
     layers.background:draw(drawBullet, {self.X, self.Y})
