@@ -188,14 +188,7 @@ function Player:updateState(data)
   self.avatarid = data.AvatarId or self.avatarid
   self.avatarstate = data.AvatarState or self.avatarstate
   self.hitPoint = data.hitPoint or self.hitPoint
-
-  -- special case: set name for other players based on their client id
-  if data.ClientId then
-    local tokens = string.gmatch(data.ClientId, "-")
-    self.name = tokens[2]
-  else
-    self.name = data.name or self.name
-  end
+  self.name = data.name or self.name
 
   -- for now, until we get the whole capitalization mess sorted out, ugh
   baseData = {
@@ -235,6 +228,7 @@ function Player.new(obj)
   local updateBaseData = self.updateState
   setmetatable(self, Player)
   self.updateBaseData = updateBaseData
+  self:updateState(obj)
   return self
 end
 

@@ -53,6 +53,7 @@ function love.load()
     radius_h = 8,
     hitPoint = settings.player.default_hitpoint,
     zoneid = 0,
+    name = glcd.name,
     AvatarId="assets/avatars/ava1.png",
     AvatarState=0
   }
