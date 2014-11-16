@@ -95,6 +95,9 @@ local function drawPlayerAttributes(info)
   local exp = love.timer.getTime() - 3
   if info.msg and info.msgtime > exp then
     drawText(info.x, info.y - 25, info.msg, 0, 255, 255)
+  else
+    info.msg = nil
+    info.msgtime = nil
   end
 
   drawHealthBar(info.x, info.y - 10, info.hitPoint)
@@ -196,7 +199,7 @@ function Player:updateState(data)
     x = data.X,
     y = data.Y,
     direction = data.direction,
-    zoneid = data.currZoneId
+    zoneid = data.zoneid
   }
   self:updateBaseData(baseData)
 end
@@ -208,10 +211,6 @@ Player.__index = Player
 -- delete :update(playerCoords) -- should be self anyway
 
 function Player.new(obj)
-
-  inspect = require('util/inspect')
-  print("*** in player.new")
-  print(inspect(obj))
 
   -- for now, until we get the whole capitalization mess sorted out, ugh
   spriteData = {
