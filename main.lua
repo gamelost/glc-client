@@ -235,7 +235,7 @@ function love.update(dt)
     updateMyState({X=playerCoords.x,
                    Y=playerCoords.y,
                    direction=direction,
-                   currZoneId=currZoneId})
+                   zoneid=currZoneId})
   end
 
   for name, sprite in pairs(Gamelost.spriteList) do
