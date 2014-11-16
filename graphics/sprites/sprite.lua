@@ -51,8 +51,10 @@ function Sprite.new(args)
   self.x = args.x or 0
   self.y = args.y or 0
   self.direction = args.direction -- can be nil
-  self.aabb = aabb.new(vector.new(self.x, self.y),
-                       vector.new(self.x + self.width, self.y + self.height))
+
+  -- aabb is set in the player coordinate system
+  self.aabb = aabb.new(vector.new(),
+                       vector.new(self.width, self.height))
 
   return self
 end
