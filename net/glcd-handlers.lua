@@ -64,7 +64,7 @@ local function onPlayerState(v)
 
   if Gamelost.spriteList[clientid] == nil then
     -- we have a new player. initialize appropriately.
-    Gamelost.spriteList[clientid] = Gamelost.Player.new(v)
+    Gamelost.spriteList[clientid] = Gamelost.Player.new(v.Data)
   else
     -- else update player values.
     Gamelost.spriteList[clientid]:updateState(v)
