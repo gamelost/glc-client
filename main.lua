@@ -151,11 +151,12 @@ function love.load()
 
   updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
 
+  -- Put current client into the spriteList
+  Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayer)
+
   local updateTimer = function()
     if stateChanged then
       glcd.send("playerState", myState)
-      -- Put current client into the spriteList
-      Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayer)
       stateChanged = false
     end
   end
@@ -232,10 +233,12 @@ function love.update(dt)
       playerCoords.x = oldPxy.x
       playerCoords.y = oldPxy.y
     end
+
+    updateMyState({X=playerCoords.x,
+                   Y=playerCoords.y,
+                   direction=direction,
+                   currZoneId=currZoneId})
   end
-  updateMyState({X=playerCoords.x, Y=playerCoords.y,
-                 direction=direction, currZoneId=currZoneId})
-  -- END Code to broadcast location.
 
   for i, sprite in pairs(Gamelost.spriteList) do
     sprite:update(i, playerCoords)
