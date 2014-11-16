@@ -1,8 +1,6 @@
-local defaultAvatar = nil
+local sprite = require('graphics/sprites/sprite')
 
--- load player asse-- default player avatar
-local AvatarId = "assets/avatars/ava1.png"
-local AvatarState = 0
+local defaultAvatar = nil
 
 -- for name, otherPlaya in pairs(otherPlayers) do
 --   -- UGLY piece of shit hack.
@@ -85,35 +83,29 @@ local function drawHealthBar(x, y, hp)
 end
 
 -- Attributes are Text and Health Bar
-local function drawPlayerAttributes(name, player)
-  local p = player.state
-  if not p or not p.X or not p.Y then
-    return
-  end
-  if p == myState then
-    drawText(p.X, p.Y - 15, name, 255, 255, 255)
+local function drawPlayerAttributes(info)
+
+  if info.name == glcd.name then
+    drawText(info.x, info.y - 15, info.name, 255, 255, 255)
   else
-    drawText(p.X, p.Y - 15, name, 0, 255, 128)
+    drawText(info.x, info.y - 15, info.name, 0, 255, 128)
   end
 
   -- Text shows for 3 seconds.
   local exp = love.timer.getTime() - 3
-  if player.msg and player.msgtime > exp then
-    drawText(p.X, p.Y - 25, player.msg, 0, 255, 255)
+  if info.msg and info.msgtime > exp then
+    drawText(info.x, info.y - 25, info.msg, 0, 255, 255)
   end
 
-  drawHealthBar(p.X, p.Y - 10, player.hitPoint)
+  drawHealthBar(info.x, info.y - 10, info.hitPoint)
 end
 
-local function drawPlayer(name, player)
-  local p = player.state
-  if not p or not p.X or not p.Y then
-    return
-  end
+local function drawPlayer(info)
+
   local frame = math.floor(love.timer.getTime() * 3) % 2
 
   -- Draw Avatar
-  local image = avatars[p.AvatarId]
+  local image = avatars[info.avatarid]
   if image == nil then
     image = defaultAvatar
   end
@@ -123,24 +115,24 @@ local function drawPlayer(name, player)
     frameOffset = 0
   end
 
-  if p.AvatarState == nil then
-    p.AvatarState = 0
+  if info.avatarstate == nil then
+    info.avatarstate = 0
   end
-  local stateOffset = p.AvatarState * 16
+  local stateOffset = info.avatarstate * 16
   if stateOffset >= image:getHeight() then
     stateOffset = 0
   end
 
   love.graphics.push()
-  love.graphics.translate(p.X, p.Y)
+  love.graphics.translate(info.x, info.y)
 
-  local quad = love.graphics.newQuad(frameOffset, stateOffset, 16, 16, image:getWidth(), image:getHeight())
+  local quad = love.graphics.newQuad(frameOffset, stateOffset, info.width, info.height, image:getWidth(), image:getHeight())
 
-  local direction = player.state.direction or "right"
+  local direction = info.direction or "right"
   if direction == "right" then
-    love.graphics.draw(image, quad, 0, 0, 0, -1, 1, 8, 8)
+    love.graphics.draw(image, quad, 0, 0, 0, -1, 1, info.width / 2, info.height / 2)
   else
-    love.graphics.draw(image, quad, 0, 0, 0, 1, 1, 8, 8)
+    love.graphics.draw(image, quad, 0, 0, 0, 1, 1, info.width / 2, info.height / 2)
   end
 
   love.graphics.pop()
@@ -177,27 +169,54 @@ local function changeAvatar(id)
   return first
 end
 
-local metaindex = {
-  update = function(self, i, playerCoords)
-    -- Doing nothing
-  end,
-  draw = function(self)
-    layers.background:draw(drawPlayer, {self.name, self})
-    layers.text:draw(drawPlayerAttributes, {self.name, self})
-  end,
-}
-
 local Player =
   { data        = {}
   , spriteType  = "Player"
-  , metatable   = { __index = metaindex }
   , setAvatar   = setAvatar
   , changeAvatar = changeAvatar
   }
 
+function Player:update(coords)
+  -- no-op.
+end
+
+function Player:draw()
+  layers.background:draw(drawPlayer, {self})
+  layers.text:draw(drawPlayerAttributes, {self})
+end
+
+function Player:updateState(data)
+  self.avatarid = data.AvatarId or self.avatarid
+  self.avatarstate = data.AvatarState or self.avatarstate
+  self.name = data.name or self.name
+  self.hitPoint = data.hitPoint or self.hitPoint
+
+  -- for now, until we get the whole capitalization mess sorted out, ugh
+  baseData = {
+    x = data.X,
+    y = data.Y,
+    direction = data.direction,
+    zoneid = data.currZoneId
+  }
+  self:updateBaseData(baseData)
+end
+
+Player.__index = Player
+
+-- TODO
+-- current zone id -- needs to be checked universally (except for Player)
+-- delete :update(playerCoords) -- should be self anyway
+  -- local tokens = string.gmatch(clientid, "-")
+  -- Gamelost.spriteList[clientid].name = tokens[2]
+
 function Player.new(obj)
-  setmetatable(obj, Player.metatable)
-  return obj
+  self = sprite.new(obj)
+  -- hacky way to set "inheritance"
+  -- TODO: there must be a better way using __index
+  local updateBaseData = self.updateState
+  setmetatable(self, Player)
+  self.updateBaseData = updateBaseData
+  return self
 end
 
 return Player

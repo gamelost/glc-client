@@ -43,43 +43,49 @@ end
 
 local function onPlayerGone(v)
   if v == nil then
-    -- error from the server? we shouldn't see this
-    print("error: onplayergone information was empty")
-  else
-    Gamelost.spriteList[v] = nil
+    error("onPlayerGone: information was empty", 1)
   end
+
+  Gamelost.spriteList[v] = nil
 end
 
 local function onPlayerState(v)
-  -- testing
   local clientid = v.ClientId
+
   if clientid == nil then
-    -- error from the server? we shouldn't see this
-    print("error: onplayerstate information was empty")
-  elseif clientid ~= glcd.clientid then
-    if Gamelost.spriteList[clientid] == nil then
-      Gamelost.spriteList[clientid] = Gamelost.Player.new{name=clientid}
-      if v.Name then
-        Gamelost.spriteList[clientid].name = v.Name
-      else
-        local tokens = string.gmatch(clientid, "-")
-        Gamelost.spriteList[clientid].name = tokens[2]
-      end
-    end
-    Gamelost.spriteList[clientid].state = v
+    error("onPlayerState: information was empty", 1)
+  end
+  if clientid == glcd.clientid then
+    -- don't bother updating our own information
+    return
+  end
+
+  if Gamelost.spriteList[clientid] == nil then
+    -- we have a new player. initialize appropriately.
+    Gamelost.spriteList[clientid] = Gamelost.Player.new(v)
+  else
+    -- else update player values.
+    Gamelost.spriteList[clientid]:updateState(v)
   end
 end
 
 -- If the heartbeat is from other players, then go forth and update the status
 -- otherwise go forth and update.
-local function onPlayerHeartbeat(obj)
-  if ClientId ~= glcd.clientid then
-    if Gamelost.spriteList[obj.ClientId] ~= nil then
-      Gamelost.spriteList[obj.ClientId].status = obj.Status
-    end
-    if obj.Status == "QUIT" then
-      Gamelost.spriteList[obj.ClientId] = nil
-    end
+local function onPlayerHeartbeat(v)
+  local clientid = v.ClientId
+
+  if clientid == nil then
+    error("onPlayerHeartbeat: information was empty", 1)
+  end
+  if clientid == glcd.clientid then
+    -- don't bother updating our own information
+    return
+  end
+
+  if v.Status == "QUIT" then
+    Gamelost.spriteList[clientid] = nil
+  else
+    Gamelost.spriteList[clientid]:updateState{Status=v.Status}
   end
 end
 

@@ -23,9 +23,9 @@ Gamelost.spriteList    = {}
 -- updateMyState.
 function updateMyState(opts)
   for k, v in pairs(opts) do
-    myState[k] = v
+    myPlayerState[k] = v
   end
-  myPlayer.state = myState
+  Gamelost.spriteList[glcd.clientid]:updateState(myPlayerState)
   stateChanged = true
 end
 
@@ -42,20 +42,19 @@ function love.load()
   console.log(Gamelost.randomQuote())
   console.show()
 
-  myState = {
-    Name = glcd.name,
-    direction = "right"
-  }
   stateChanged = true
 
-  myPlayer = {
-    state = myState,
+  myPlayerState = {
+    direction = "right",
     name = glcd.name,
     height = 16,
     width = 16,
     radius_w = 8,
     radius_h = 8,
-    hitPoint = settings.player.default_hitpoint
+    hitPoint = settings.player.default_hitpoint,
+    zoneid = 0,
+    AvatarId="assets/avatars/ava1.png",
+    AvatarState=0
   }
 
   pressedKey = {value = nil, dirtyKey = false}
@@ -105,9 +104,6 @@ function love.load()
 
   -- default player speed
   pSpeed = 50
-  -- default player avatar
-  AvatarId = "assets/avatars/ava1.png"
-  AvatarState = 0
 
   -- world physics.
   love.physics.setMeter(16)
@@ -149,20 +145,21 @@ function love.load()
   glcd.send("connected")
   glcd.send("broadcast", {request= "playerState"})
 
-  updateMyState({X = px, Y = py, AvatarId = "assets/avatars/ava1.png", AvatarState = AvatarState})
-
   -- Put current client into the spriteList
-  Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayer)
+  Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayerState)
 
-  local updateTimer = function()
+  updateMyState({X=px,
+                 Y=py})
+
+  local updateState = function()
     if stateChanged then
-      glcd.send("playerState", myState)
+      glcd.send("playerState", myPlayerState)
       stateChanged = false
     end
   end
 
   -- 10 times per second.
-  clock.every(1/10, updateTimer, "updateState")
+  clock.every(1/10, updateState, "updateState")
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
@@ -211,12 +208,12 @@ function love.update(dt)
   local playerCoords = {
     x = (px),
     y = (py),
-    radius_h = myPlayer.radius_h,
-    radius_w = myPlayer.radius_w,
+    radius_h = myPlayerState.radius_h,
+    radius_w = myPlayerState.radius_w,
     direction = direction,
-    name = myPlayer.name,
-    width = myPlayer.width,
-    height = myPlayer.height,
+    name = myPlayerState.name,
+    width = myPlayerState.width,
+    height = myPlayerState.height,
   }
 
   if dx ~= 0 or dy ~= 0 then
@@ -240,10 +237,10 @@ function love.update(dt)
                    currZoneId=currZoneId})
   end
 
-  for i, sprite in pairs(Gamelost.spriteList) do
-    sprite:update(i, playerCoords)
+  for name, sprite in pairs(Gamelost.spriteList) do
+    sprite:update(playerCoords)
     if sprite.remove == true then
-      Gamelost.spriteList[i] = nil
+      Gamelost.spriteList[name] = nil
     end
   end
 
@@ -271,8 +268,8 @@ function love.draw()
   -- set background layer transform coordinates. we do this so that
   -- we can have our avatar in the middle of the screen.
   local mx, my = layers.background:midpoint()
-  local bx = mx - myPlayer.state.X
-  local by = my - myPlayer.state.Y
+  local bx = mx - myPlayerState.X
+  local by = my - myPlayerState.Y
 
   if splash then
     layers.splash:draw(Gamelost.splash_screen.draw)
@@ -293,7 +290,7 @@ function love.draw()
       layers.background:draw(zone.update)
     end
 
-    for i, sprite in pairs(Gamelost.spriteList) do
+    for _, sprite in pairs(Gamelost.spriteList) do
       sprite:draw()
     end
 
