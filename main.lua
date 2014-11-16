@@ -238,6 +238,7 @@ function love.update(dt)
                    zoneid=currZoneId})
   end
 
+  -- VERY important. this must be called periodically, NOT every frame.
   for name, sprite in pairs(Gamelost.spriteList) do
     sprite:update()
     if sprite.remove == true then

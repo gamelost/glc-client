@@ -1,4 +1,37 @@
 
+-- was: from bullet.
+--checkHitOnOtherPlayer(self)
+
+local function checkHitOnOtherPlayer(bullet, playerCoords)
+  if not bullet.hitList[myPlayer.name] and isPlayerHitByBullet(playerCoords, bullet) then
+    bullet.hitList[myPlayer.name] = true
+    myPlayer.hitPoint = myPlayer.hitPoint - bullet.damage
+
+    -- TODO: Need to have players send currZoneId and currZone in their states.
+    local currZoneId, currZone = getZoneOffset(playerCoords.x, playerCoords.y)
+    if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
+      bullet.remove = true
+    end
+
+    if myPlayer.hitPoint <= 0 then
+      local randomVerb = killVerbs[math.random(1, #killVerbs)]
+      local killString = (myPlayer.name .. " was " .. randomVerb .. " by " .. bullet.name)
+      --print(killString)
+      -- TODO: Need a way to send a system event instead.
+      glcd.send("chat", {Sender=glcd.name, Message=killString})
+      -- Teleport to a random location after player dies.
+      px, py = randomZoneLocation()
+      updateMyState({X = px, Y = py})
+      myPlayer.hitPoint = settings.player.default_hitpoint
+    else
+      print(myPlayer.name .. " was hit by " .. bullet.name)
+    end
+  end
+end
+-- if hasCollision(zones[currZoneId], bullet.X, bullet.Y) then
+--   bullet.remove = true
+-- end
+
 function randomZoneLocation()
 
   -- up to 10 attempts.
