@@ -21,7 +21,9 @@ local function onBroadcast(msg)
   if msg.request == "playerState" then
     glcd.send("playerState", myPlayerState)
   elseif msg.request == "fireBullet" then
-    table.insert(Gamelost.spriteList, Gamelost.Bullet.new(msg.bullet))
+    bullet = Gamelost.Bullet.new(msg.bullet)
+    -- only one at a time
+    Gamelost.spriteList["bullet"] = bullet
   elseif msg.request == "metadata_hit" then
     if msg.properties.action == "toggle_next_layer" then
       local currZone = nil
