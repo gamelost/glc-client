@@ -239,7 +239,7 @@ function love.update(dt)
   end
 
   for name, sprite in pairs(Gamelost.spriteList) do
-    sprite:update(playerCoords)
+    sprite:update()
     if sprite.remove == true then
       Gamelost.spriteList[name] = nil
     end
