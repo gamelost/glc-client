@@ -19,6 +19,7 @@ end
 
 local function onBroadcast(msg)
   if msg.request == "playerState" then
+    print("*** sending my player state")
     print(inspect(myPlayerState))
     glcd.send("playerState", myPlayerState)
   elseif msg.request == "fireBullet" then

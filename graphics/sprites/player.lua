@@ -214,7 +214,22 @@ Player.__index = Player
 -- delete :update(playerCoords) -- should be self anyway
 
 function Player.new(obj)
-  self = sprite.new(obj)
+
+  inspect = require('util/inspect')
+  print("*** in player.new")
+  print(inspect(obj))
+
+  -- for now, until we get the whole capitalization mess sorted out, ugh
+  spriteData = {
+    x = obj.X,
+    y = obj.Y,
+    width = obj.width,
+    height = obj.width,
+    direction = obj.direction,
+    zoneid = obj.zoneid
+  }
+  self = sprite.new(spriteData)
+
   -- hacky way to set "inheritance"
   -- TODO: there must be a better way using __index
   local updateBaseData = self.updateState
