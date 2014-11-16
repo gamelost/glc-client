@@ -1,4 +1,4 @@
-local sprite = require('graphics/sprites/sprite')
+local Sprite = require('graphics/sprites/sprite')
 
 local defaultAvatar = nil
 
@@ -171,14 +171,12 @@ local function changeAvatar(id)
   return first
 end
 
-local Player =
-  { data        = {}
-  , spriteType  = "Player"
-  , setAvatar   = setAvatar
-  , changeAvatar = changeAvatar
-  }
+Player = Sprite.inherit{spriteType = "Player"}
+Player.__index = Player
+Player.setAvatar = setAvatar
+Player.changeAvatar = changeAvatar
 
-function Player:update(coords)
+function Player:update()
   -- no-op.
 end
 
@@ -194,20 +192,19 @@ function Player:updateState(data)
   self.name = data.name or self.name
 
   -- for now, until we get the whole capitalization mess sorted out, ugh
-  baseData = {
+  baseState = {
     x = data.X,
     y = data.Y,
     direction = data.direction,
     zoneid = data.zoneid
   }
-  self:updateBaseData(baseData)
-end
 
-Player.__index = Player
+  -- we must manually call the base function; we can't use :.
+  self.__base.updateState(self, baseState)
+end
 
 -- TODO
 -- current zone id -- needs to be checked universally (except for Player)
--- delete :update(playerCoords) -- should be self anyway
 
 function Player.new(obj)
 
@@ -220,13 +217,8 @@ function Player.new(obj)
     direction = obj.direction,
     zoneid = obj.zoneid
   }
-  self = sprite.new(spriteData)
-
-  -- hacky way to set "inheritance"
-  -- TODO: there must be a better way using __index
-  local updateBaseData = self.updateState
+  self = Player.__base.new(spriteData)
   setmetatable(self, Player)
-  self.updateBaseData = updateBaseData
   self:updateState(obj)
   return self
 end

@@ -7,10 +7,10 @@ Sprite.__index = Sprite
 
 -- each sprite must implement:
 --   updateState = function(self, data)
---   update = function(self, playerCoords)
+--   update = function(self)
 --   draw = function(self)
 
-function Sprite:update(i, coords)
+function Sprite:update()
   assert(false, "base sprite `update' function called.")
 end
 
@@ -57,6 +57,17 @@ function Sprite.new(args)
                        vector.new(self.width, self.height))
 
   return self
+end
+
+-- inheritance function.
+function Sprite.inherit(args)
+  superclass = {}
+  superclass.spriteType = args.spriteType or "Unknown"
+  superclass.__base = Sprite
+  -- these must be overridden.
+  superclass.draw = superclass.__base.draw
+  superclass.update = superclass.__base.update
+  return superclass
 end
 
 return Sprite
