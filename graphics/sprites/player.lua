@@ -188,8 +188,15 @@ end
 function Player:updateState(data)
   self.avatarid = data.AvatarId or self.avatarid
   self.avatarstate = data.AvatarState or self.avatarstate
-  self.name = data.name or self.name
   self.hitPoint = data.hitPoint or self.hitPoint
+
+  -- special case: set name for other players based on their client id
+  if data.ClientId then
+    local tokens = string.gmatch(data.ClientId, "-")
+    self.name = tokens[2]
+  else
+    self.name = data.name or self.name
+  end
 
   -- for now, until we get the whole capitalization mess sorted out, ugh
   baseData = {
@@ -206,8 +213,6 @@ Player.__index = Player
 -- TODO
 -- current zone id -- needs to be checked universally (except for Player)
 -- delete :update(playerCoords) -- should be self anyway
-  -- local tokens = string.gmatch(clientid, "-")
-  -- Gamelost.spriteList[clientid].name = tokens[2]
 
 function Player.new(obj)
   self = sprite.new(obj)

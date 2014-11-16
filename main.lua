@@ -143,7 +143,7 @@ function love.load()
   px, py = randomZoneLocation()
 
   glcd.send("connected")
-  glcd.send("broadcast", {request= "playerState"})
+  glcd.send("broadcast", {request = "playerState"})
 
   -- Put current client into the spriteList
   Gamelost.spriteList[glcd.clientid] = Gamelost.Player.new(myPlayerState)

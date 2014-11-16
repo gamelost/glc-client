@@ -19,8 +19,7 @@ return {
     glcd.send("broadcast",
       { request = "fireBullet"
       , bullet = Gamelost.Bullet.fireBullet(
-                  { state=myState
-                  , player=myPlayer
+                  { player=myPlayerState
                   , speed=pSpeed
                   } )
       })

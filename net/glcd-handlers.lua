@@ -19,7 +19,8 @@ end
 
 local function onBroadcast(msg)
   if msg.request == "playerState" then
-    glcd.send("playerState", myState)
+    print(inspect(myPlayerState))
+    glcd.send("playerState", myPlayerState)
   elseif msg.request == "fireBullet" then
     table.insert(Gamelost.spriteList, Gamelost.Bullet.new(msg.bullet))
   elseif msg.request == "metadata_hit" then
@@ -85,7 +86,8 @@ local function onPlayerHeartbeat(v)
   if v.Status == "QUIT" then
     Gamelost.spriteList[clientid] = nil
   else
-    Gamelost.spriteList[clientid]:updateState{Status=v.Status}
+    -- TODO disabled for now; v is null, so v.Status breaks
+    --Gamelost.spriteList[clientid]:updateState{Status=v.Status}
   end
 end
 
