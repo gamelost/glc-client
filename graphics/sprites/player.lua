@@ -91,13 +91,8 @@ local function drawPlayerAttributes(info)
     drawText(info.x, info.y - 15, info.name, 0, 255, 128)
   end
 
-  -- Text shows for 3 seconds.
-  local exp = love.timer.getTime() - 3
-  if info.msg and info.msgtime > exp then
+  if info.msg then
     drawText(info.x, info.y - 25, info.msg, 0, 255, 255)
-  else
-    info.msg = nil
-    info.msgtime = nil
   end
 
   drawHealthBar(info.x, info.y - 10, info.hitPoint)

@@ -36,15 +36,13 @@ local function fireBullet(playerData)
                                   playerData.player.Y)
   -- calculate currZoneId only once and pass it into playerData
   -- we don't use the second variable
-  local currZoneId, currZone = getZoneOffset(location.X, location.Y)
+  local currZoneId, _ = getZoneOffset(location.X, location.Y)
   return { spriteType = "Bullet"
   , name = playerData.player.name
   , direction = playerData.player.direction
   , X = location.X
   , Y = location.Y
-  , hitList = {[""] = true} -- json.lua is fubar! To hell with it. It'll crash if I leave an empty table {} here.
   , damage = 1
-  --, startTime = love.timer.getTime() -- should not be in here
   , zoneid = currZoneId
   , speed = playerData.speed
   , width = 4

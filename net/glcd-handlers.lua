@@ -1,4 +1,5 @@
 local inspect = require("util/inspect")
+local clock = require('util/clock')
 
 local function onChat(v, m)
   if not v.Sender then
@@ -7,14 +8,16 @@ local function onChat(v, m)
   console.log(v.Sender .. ': ' .. v.Message)
   if Gamelost.spriteList[m.ClientId] then
     Gamelost.spriteList[m.ClientId].msg = v.Message
-    Gamelost.spriteList[m.ClientId].msgtime = love.timer.getTime()
+    local function fn()
+      Gamelost.spriteList[m.ClientId].msg = nil
+    end
+    -- set a timer to get rid of this message.
+    clock.schedule(3, fn, "message-expiry")
   end
 end
 
 local function chat(text)
   glcd.send("chat", {Message=text, Sender = glcd.name})
-  myPlayerState.msg = text
-  myPlayerState.msgtime = love.timer.getTime()
 end
 
 local function onBroadcast(msg)
