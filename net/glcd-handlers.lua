@@ -13,8 +13,8 @@ end
 
 local function chat(text)
   glcd.send("chat", {Message=text, Sender = glcd.name})
-  myPlayer.msg = text
-  myPlayer.msgtime = love.timer.getTime()
+  myPlayerState.msg = text
+  myPlayerState.msgtime = love.timer.getTime()
 end
 
 local function onBroadcast(msg)

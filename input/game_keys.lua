@@ -5,15 +5,15 @@ return {
     keymode = "console"
   end,
   v = function ()
-    AvatarId = Gamelost.Player.changeAvatar(AvatarId)
-    updateMyState({AvatarId = AvatarId})
+    myPlayerState.AvatarId = Gamelost.Player.changeAvatar(AvatarId)
+    updateMyState({AvatarId = myPlayerState.AvatarId})
   end,
   s = function ()
-    AvatarState = AvatarState + 1
-    if AvatarState > 2 then
-      AvatarState = 0
+    myPlayerState.AvatarState = myPlayerState.AvatarState + 1
+    if myPlayerState.AvatarState > 2 then
+      myPlayerState.AvatarState = 0
     end
-    updateMyState({AvatarState = AvatarState})
+    updateMyState({AvatarState = myPlayerState.AvatarState})
   end,
   [" "] = function ()
     bullet = Gamelost.Bullet.fireBullet{ player=myPlayerState,
