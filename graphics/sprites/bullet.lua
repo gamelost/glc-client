@@ -47,14 +47,13 @@ local function fireBullet(playerData)
 end
 
 Bullet = Sprite.inherit{spriteType = "Bullet"}
-Bullet.__index = Bullet
 Bullet.fireBullet = fireBullet
 
-function Bullet:updateState(data)
+function Bullet.fn:updateState(data)
   self.speed = data.speed or self.speed
 end
 
-function Bullet:update()
+function Bullet.fn:update()
 
   -- for now
   local delta = 0.4
@@ -84,7 +83,7 @@ function Bullet:update()
   -- end
 end
 
-function Bullet:draw()
+function Bullet.fn:draw()
   layers.background:draw(drawBullet, {self.x, self.y})
 end
 
@@ -98,7 +97,7 @@ function Bullet.new(obj)
     zoneid = obj.zoneid
   }
 
-  self = Bullet.__base.new(bulletData)
+  self = Sprite.new(bulletData)
   setmetatable(self, Bullet)
   self:updateState(obj)
   return self
