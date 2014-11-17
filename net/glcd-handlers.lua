@@ -6,13 +6,18 @@ local function onChat(v, m)
     v.Sender = "ANNOUNCE"
   end
   console.log(v.Sender .. ': ' .. v.Message)
+
+  local function expiry()
+    if Gamelost.spriteList[m.ClientId] then
+      Gamelost.spriteList[m.ClientId].msg = nil
+      glcd.send("broadcast", {request = "playerState"})
+    end
+  end
+
   if Gamelost.spriteList[m.ClientId] then
     Gamelost.spriteList[m.ClientId].msg = v.Message
-    local function fn()
-      Gamelost.spriteList[m.ClientId].msg = nil
-    end
     -- set a timer to get rid of this message.
-    clock.schedule(3, fn, "message-expiry")
+    clock.schedule(3, expiry, "message-expiry")
   end
 end
 

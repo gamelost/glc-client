@@ -292,10 +292,10 @@ function love.draw()
       layers.background:draw(zone.update)
     end
 
+    -- draw all the sprites.
     for _, sprite in pairs(Gamelost.spriteList) do
       sprite:draw()
     end
-
   end
 
   -- and at the end of the frame, render all layers.
