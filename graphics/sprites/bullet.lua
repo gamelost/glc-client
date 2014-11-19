@@ -27,10 +27,6 @@ end
 -- fireBullet is triggered by pressing the spacebar and returns a message
 -- containing all the important bulletData.
 local function fireBullet(playerData)
-
-  inspect = require('util/inspect')
-  print(inspect(playerData))
-
   local location = bulletLocation(playerData.player.direction,
                                   playerData.player.X,
                                   playerData.player.Y)
