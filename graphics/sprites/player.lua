@@ -49,7 +49,7 @@ local function drawText(x, y, str, r, g, b)
 end
 
 local function drawHealthBar(x, y, hp)
-  local hp = 50
+  if not hp then hp = 50 end
   local BAR_WIDTH = 40
   local BAR_HEIGHT = 4
   local BORDER_WIDTH = 2
