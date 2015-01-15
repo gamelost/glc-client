@@ -1,6 +1,8 @@
 -- inspired by xscreensaver hacks:
 -- from https://github.com/danfuzz/xscreensaver/blob/master/hacks/halo.c
 
+local color = require 'graphics/color'
+
 Circle = {}
 Circle.mt = {} -- metatable
 Circle.mt.__index = Circle
@@ -61,8 +63,15 @@ function circle_draw()
     local c = circles[i]
     local x = c.x - c.r
     local y = c.y - c.r
-    love.graphics.setColor(c.rgb[1], c.rgb[2], c.rgb[3])
-    love.graphics.circle('fill', x, y, c.r*2, 64)
+    local h, s, l = color.rgb_to_hsl(c.rgb[1], c.rgb[2], c.rgb[3])
+    local radius = c.r * 4
+    for _ = 1, 5 do
+      l = l * 0.95
+      radius = radius * 0.85
+      local r, g, b = color.hsl_to_rgb(h, s, l)
+      love.graphics.setColor(r, g, b)
+      love.graphics.circle('fill', x, y, radius, 64)
+    end
     c.r = c.r + c.increment
   end
 

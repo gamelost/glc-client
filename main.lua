@@ -161,6 +161,8 @@ function love.load()
 
   -- 10 times per second.
   clock.every(1/10, updateState, "updateState")
+
+  console.log("here's to 2015!")
 end
 
 -- Runs continuously. Good idea to put all the computations here. 'dt'
