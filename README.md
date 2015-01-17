@@ -96,6 +96,12 @@ The code may indeed be broken. Look at the list of [github issues](https://githu
 
 Of course, you can ask us any question at (almost) any time on IRC at `#gamelost` on freenode.net.
 
+Running Tests
+=============
+
+You will need to have Luarocks installed, then run `luarocks install busted`
+and then run `busted` in the `glc-client` directory.
+
 License
 =======
 
