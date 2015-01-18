@@ -1,41 +1,35 @@
-aabb = require('geometry/aabb')
-vector = require('geometry/vector')
+local aabb = require('geometry/aabb')
+local vector = require('geometry/vector')
+local _ = require('util/underscore')
 
 -- generic sprite class.
-Sprite = {}
-Sprite.__index = Sprite
+local prototype = {
+  -- each sprite must implement:
+  --   updateState = function(self, data)
+  --   update = function(self)
+  --   draw = function(self)
+  updateState = function(self, data)
+    -- each sprite has the following attributes:
+    --   world coordinates (x, y)
+    --   width, height
+    --   zone id
+    --   direction (can be nil)
+    --   axis-aligned bounding box (automatically calculated)
+    self.x = data.x or self.x
+    self.y = data.y or self.y
+    self.width = data.width or self.width
+    self.height = data.height or self.height
+    self.direction = data.direction or self.direction
+    self.zoneid = data.zoneid or self.zoneid
+  end,
+  update = function (self)
+  end,
+  draw = function (self)
+  end,
+}
 
--- each sprite must implement:
---   updateState = function(self, data)
---   update = function(self)
---   draw = function(self)
-
-function Sprite:update()
-  assert(false, "base sprite `update' function called.")
-end
-
-function Sprite:draw()
-  assert(false, "base sprite `draw' function called.")
-end
-
--- each sprite has the following attributes:
---   world coordinates (x, y)
---   width, height
---   zone id
---   direction (can be nil)
---   axis-aligned bounding box (automatically calculated)
-
-function Sprite:updateState(data)
-  self.x = data.x or self.x
-  self.y = data.y or self.y
-  self.width = data.width or self.width
-  self.height = data.height or self.height
-  self.direction = data.direction or self.direction
-  self.zoneid = data.zoneid or self.zoneid
-end
-
-function Sprite.new(args)
-  self = setmetatable({}, Sprite)
+local new = function(args)
+  local self = setmetatable(args, {__index = prototype})
 
   -- required
   self.width = args.width
@@ -59,15 +53,21 @@ function Sprite.new(args)
   return self
 end
 
--- inheritance function.
-function Sprite.inherit(args)
-  superclass = {}
-  superclass.spriteType = args.spriteType or "Unknown"
-  superclass.__base = Sprite
-  -- these must be overridden.
-  superclass.draw = superclass.__base.draw
-  superclass.update = superclass.__base.update
-  return superclass
+local inherit
+
+inherit = function(args)
+  extension = _.extend(args, prototype)
+  return {
+    new = new,
+    __base = prototype,
+    __index = extension,
+    inherit = inherit,
+    fn = extension,
+  }
 end
 
-return Sprite
+return {
+  inherit = inherit,
+  fn = prototype,
+  new = new,
+}

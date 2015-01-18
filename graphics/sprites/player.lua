@@ -147,10 +147,8 @@ local function setAvatar(file)
 end
 
 local function changeAvatar(id)
-  local keys = {}
-  local n    = 0
-  local first = nil
-  local ret = false
+  local keys, n, first, ret =
+          {}, 0, nil, false
   for k, v in pairs(avatars) do
     n = n + 1
     keys[n] = k
@@ -167,21 +165,18 @@ local function changeAvatar(id)
   return first
 end
 
-Player = Sprite.inherit{spriteType = "Player"}
-Player.__index = Player
+local Player = Sprite.inherit{
+  spriteType = "Player",
+  changeAvatar = changeAvatar,
+}
 Player.setAvatar = setAvatar
-Player.changeAvatar = changeAvatar
 
-function Player:update()
-  -- no-op.
-end
-
-function Player:draw()
+function Player.fn.draw(self)
   layers.background:draw(drawPlayer, {self})
   layers.text:draw(drawPlayerAttributes, {self})
 end
 
-function Player:updateState(data)
+function Player.fn.updateState(self, data)
   self.avatarid = data.AvatarId or self.avatarid
   self.avatarstate = data.AvatarState or self.avatarstate
   self.hitPoint = data.hitPoint or self.hitPoint
@@ -196,16 +191,15 @@ function Player:updateState(data)
   }
 
   -- we must manually call the base function; we can't use :.
-  self.__base.updateState(self, baseState)
+  Player.__base.updateState(self, baseState)
 end
 
 -- TODO
 -- current zone id -- needs to be checked universally (except for Player)
 
 function Player.new(obj)
-
   -- for now, until we get the whole capitalization mess sorted out, ugh
-  spriteData = {
+  local spriteData = {
     x = obj.X,
     y = obj.Y,
     width = obj.width,
@@ -213,8 +207,8 @@ function Player.new(obj)
     direction = obj.direction,
     zoneid = obj.zoneid
   }
-  self = Player.__base.new(spriteData)
-  setmetatable(self, Player)
+  local self = Sprite.new(spriteData)
+  self = setmetatable(self, Player)
   self:updateState(obj)
   return self
 end
